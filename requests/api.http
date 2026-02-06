@@ -1,0 +1,124 @@
+### Variables for different environments
+@baseUrl = http://localhost:3000
+# @baseUrl = https://trading-admin-jade.vercel.app
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+@verificationToken = 
+
+### Login Customer (Signin)
+# @name login
+POST {{baseUrl}}/api/v1/customer/signin
+Content-Type: application/json
+
+{
+    "email": "sainyi@gmail.com",
+    "password": "sainyi"
+}
+
+### Get Working (Reference)
+GET {{baseUrl}}/api/v1/working
+
+### Update authToken with login response
+@authToken = {{login.response.body.token}}
+
+### Sign Up Customer
+POST {{baseUrl}}/api/v1/customer/signup
+Content-Type: application/json
+
+{
+    "name": "sainyi",
+    "email": "sainyi@gmail.com",
+    "password": "sainyi",
+    "fundPassword": "123456",
+    "phoneNumber": "1234567890"
+    // "referCode": "OPTIONAL_UPLINE_CODE"
+}
+
+### Send Email Verification_REFERENCE_ONLY
+POST {{baseUrl}}/api/v1/customer/send-verification
+Content-Type: application/json
+
+{
+    "email": "newuser@example.com"
+}
+
+### Verify Email_REFERENCE_ONLY
+GET {{baseUrl}}/api/v1/customer/verify-email?token={{verificationToken}}
+Content-Type: application/json
+
+### Logout Customer_REFERENCE_ONLY
+POST {{baseUrl}}/api/v1/customer/logout
+Authorization: Bearer {{authToken}}
+
+### Customer Profile_REFERENCE_ONLY
+GET {{baseUrl}}/api/v1/customer/profile
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+### Create Deposit Transaction_REFERENCE_ONLY
+POST {{baseUrl}}/api/v1/transactions/deposit
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "accountNo": "1738856250480251",
+    "amount": 100.00,
+    "description": "Deposit for savings"
+}
+
+### Get Customer Assets_REFERENCE_ONLY
+GET {{baseUrl}}/api/v1/customer/assets
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+### Get Customer Coin Balance_REFERENCE_ONLY
+GET {{baseUrl}}/api/v1/customer/coin/balance?currency=usdt
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+### Change Password_REFERENCE_ONLY
+POST {{baseUrl}}/api/v1/customer/change-password
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "oldPassword": "sainyinyitun",
+    "newPassword": "sainyinyitun"
+}
+
+### Validate Customer Token_REFERENCE_ONLY
+GET {{baseUrl}}/api/v1/customer/validate
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+### Set Fund Password_REFERENCE_ONLY
+POST {{baseUrl}}/api/v1/customer/set-fund-password
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "fundPassword": "123456"
+}
+
+### Check Fund Password Is Set_REFERENCE_ONLY
+GET {{baseUrl}}/api/v1/customer/is-set-fund-password
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+### Modify Fund Password_REFERENCE_ONLY
+POST {{baseUrl}}/api/v1/customer/modify-fund-password
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "oldFundPassword": "123456",
+    "newFundPassword": "123456"
+}
+
+### Check Fund Password_REFERENCE_ONLY
+POST {{baseUrl}}/api/v1/customer/check-fund-password
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+    "fundPassword": "1234567890"
+}

@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id        Int       @id @default(autoincrement())
+  user_id   String    @unique @db.VarChar(20)
+  role      AdminRole @default(ADMIN)
+  name      String
+  email     String    @unique
+  password  String
+  referCode String    @unique @db.VarChar(10)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Customer {
+  id                 Int                 @id @default(autoincrement())
+  user_id            String              @unique @db.VarChar(20)
+  name               String
+  email              String              @unique
+  password           String
+  fundPassword       String?
+  phoneNumber        String?
+  referCode          String              @unique @db.VarChar(10)
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  status             String              @default("active")
+  verificationTokens VerificationToken[]
+}
+
+model VerificationToken {
+  id         Int       @id @default(autoincrement())
+  identifier String
+  token      String    @unique
+  expires    DateTime
+  customerId Int?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+
+  @@unique([identifier, token])
+  @@index([customerId], map: "VerificationToken_customerId_fkey")
+}
+
+model Product {
+  id          Int      @id @default(autoincrement())
+  product_id  String   @unique @db.VarChar(8)
+  name        String
+  description String   @db.Text
+  price       Float
+  commission  Float
+  rating      Float    @default(0)
+  image       String?
+  status      String   @default("active")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+  MODERATOR
+}

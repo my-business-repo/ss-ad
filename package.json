@@ -6,34 +6,55 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "db:push": "prisma db push",
+    "db:generate": "prisma generate",
+    "db:studio": "prisma studio"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.984.0",
+    "@aws-sdk/lib-storage": "^3.984.0",
     "apexcharts": "^4.5.0",
+    "bcryptjs": "^3.0.3",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.13",
+    "dotenv": "^17.2.3",
     "flatpickr": "^4.6.13",
+    "jsonwebtoken": "^9.0.3",
     "jsvectormap": "^1.6.0",
+    "mysql2": "^3.16.3",
     "next": "16.0.10",
+    "next-auth": "^5.0.0-beta.30",
     "next-themes": "^0.4.4",
     "nextjs-toploader": "^3.7.15",
     "react": "^19.2.0",
     "react-apexcharts": "^1.7.0",
     "react-dom": "^19.2.0",
+    "sharp": "^0.34.5",
     "tailwind-merge": "^2.6.0"
   },
   "devDependencies": {
+    "@prisma/client": "^6.8.0",
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22",
     "@types/react": "19.0.8",
     "@types/react-dom": "19.0.3",
     "autoprefixer": "^10.4.20",
+    "baseline-browser-mapping": "^2.9.19",
     "eslint": "^9",
     "eslint-config-next": "15.1.6",
     "postcss": "^8",
     "prettier": "^3.4.2",
     "prettier-plugin-tailwindcss": "^0.6.11",
+    "prisma": "^6.8.0",
     "tailwindcss": "^3.4.16",
+    "ts-node": "^10.9.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5"
+  },
+  "prisma": {
+    "seed": "ts-node -r tsconfig-paths/register --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   }
 }

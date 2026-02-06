@@ -1,5 +1,7 @@
 "use client";
 
+import { logout } from "@/actions/auth-actions";
+
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
 import Link from "next/link";
@@ -116,7 +118,7 @@ export function Sidebar() {
                                 className={cn(
                                   "ml-auto rotate-180 transition-transform duration-200",
                                   expandedItems.includes(item.title) &&
-                                    "rotate-0",
+                                  "rotate-0",
                                 )}
                                 aria-hidden="true"
                               />
@@ -143,11 +145,30 @@ export function Sidebar() {
                           </div>
                         ) : (
                           (() => {
+                            if (item.title === "Sign Out") {
+                              return (
+                                <MenuItem
+                                  className="flex items-center gap-3 py-3"
+                                  onClick={async () => {
+                                    await logout();
+                                  }}
+                                  isActive={false}
+                                >
+                                  <item.icon
+                                    className="size-6 shrink-0"
+                                    aria-hidden="true"
+                                  />
+
+                                  <span>{item.title}</span>
+                                </MenuItem>
+                              );
+                            }
+
                             const href =
                               "url" in item
                                 ? item.url + ""
                                 : "/" +
-                                  item.title.toLowerCase().split(" ").join("-");
+                                item.title.toLowerCase().split(" ").join("-");
 
                             return (
                               <MenuItem

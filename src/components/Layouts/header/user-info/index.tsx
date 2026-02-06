@@ -7,19 +7,26 @@ import {
   DropdownTrigger,
 } from "@/components/ui/dropdown";
 import { cn } from "@/lib/utils";
+import { useSession } from "next-auth/react"; // Import useSession
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
 import { LogOutIcon, SettingsIcon, UserIcon } from "./icons";
+import { logout } from "@/actions/auth-actions";
 
 export function UserInfo() {
+  const { data: session } = useSession(); // Get session data
   const [isOpen, setIsOpen] = useState(false);
 
-  const USER = {
-    name: "John Smith",
-    email: "johnson@sadmin.com",
-    img: "/images/user/user-03.png",
-  };
+  // Fallback values or explicit session data
+  const userName = session?.user?.name || "Admin User";
+  const userEmail = session?.user?.email || "admin@example.com";
+  const userRole = (session?.user as any)?.role || "Admin"; // Cast to any if role isn't typed yet
+  // Use a default placeholder if no image
+  const userImg = session?.user?.image || "/images/user/user-03.png";
+
+  // Initials for fallback if needed (though we use image src above)
+  const initials = userName.substring(0, 2).toUpperCase();
 
   return (
     <Dropdown isOpen={isOpen} setIsOpen={setIsOpen}>
@@ -27,16 +34,23 @@ export function UserInfo() {
         <span className="sr-only">My Account</span>
 
         <figure className="flex items-center gap-3">
-          <Image
-            src={USER.img}
-            className="size-12"
-            alt={`Avatar of ${USER.name}`}
-            role="presentation"
-            width={200}
-            height={200}
-          />
+          {session?.user?.image ? (
+            <Image
+              src={userImg}
+              className="size-12 rounded-full"
+              alt={`Avatar of ${userName}`}
+              role="presentation"
+              width={200}
+              height={200}
+            />
+          ) : (
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 text-lg font-bold text-primary dark:bg-white/10 dark:text-white">
+              {initials}
+            </div>
+          )}
+
           <figcaption className="flex items-center gap-1 font-medium text-dark dark:text-dark-6 max-[1024px]:sr-only">
-            <span>{USER.name}</span>
+            <span>{userName}</span>
 
             <ChevronUpIcon
               aria-hidden
@@ -57,21 +71,27 @@ export function UserInfo() {
         <h2 className="sr-only">User information</h2>
 
         <figure className="flex items-center gap-2.5 px-5 py-3.5">
-          <Image
-            src={USER.img}
-            className="size-12"
-            alt={`Avatar for ${USER.name}`}
-            role="presentation"
-            width={200}
-            height={200}
-          />
+          {session?.user?.image ? (
+            <Image
+              src={userImg}
+              className="size-12 rounded-full"
+              alt={`Avatar for ${userName}`}
+              role="presentation"
+              width={200}
+              height={200}
+            />
+          ) : (
+            <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/20 text-lg font-bold text-primary dark:bg-white/10 dark:text-white">
+              {initials}
+            </div>
+          )}
 
           <figcaption className="space-y-1 text-base font-medium">
             <div className="mb-2 leading-none text-dark dark:text-white">
-              {USER.name}
+              {userName}
             </div>
 
-            <div className="leading-none text-gray-6">{USER.email}</div>
+            <div className="leading-none text-gray-6">{userRole}</div>
           </figcaption>
         </figure>
 
@@ -106,7 +126,9 @@ export function UserInfo() {
         <div className="p-2 text-base text-[#4B5563] dark:text-dark-6">
           <button
             className="flex w-full items-center gap-2.5 rounded-lg px-2.5 py-[9px] hover:bg-gray-2 hover:text-dark dark:hover:bg-dark-3 dark:hover:text-white"
-            onClick={() => setIsOpen(false)}
+            onClick={async () => {
+              await logout();
+            }}
           >
             <LogOutIcon />
 

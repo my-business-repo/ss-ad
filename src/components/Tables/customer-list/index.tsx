@@ -7,10 +7,12 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { getUsers } from "./fetch";
+import { getCustomers } from "./fetch";
+import { PencilSquareIcon, TrashIcon } from "@/assets/icons";
+import { PreviewIcon } from "../icons";
 
-export async function UserTable({ className }: { className?: string }) {
-    const data = await getUsers();
+export async function CustomerTable({ className }: { className?: string }) {
+    const data = await getCustomers();
 
     return (
         <div
@@ -20,53 +22,73 @@ export async function UserTable({ className }: { className?: string }) {
             )}
         >
             <h2 className="mb-4 text-body-2xlg font-bold text-dark dark:text-white">
-                User List
+                Customer List
             </h2>
 
             <Table>
                 <TableHeader>
                     <TableRow className="border-none uppercase [&>th]:text-center">
+                        <TableHead className="min-w-[100px] !text-left">User ID</TableHead>
                         <TableHead className="min-w-[120px] !text-left">Name</TableHead>
                         <TableHead className="!text-left">Email</TableHead>
-                        <TableHead>Role</TableHead>
+                        <TableHead>Phone</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead className="!text-right">Last Login</TableHead>
+                        <TableHead className="!text-right">Joined</TableHead>
+                        <TableHead className="!text-right">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
 
                 <TableBody>
-                    {data.map((user) => (
+                    {data.map((customer) => (
                         <TableRow
                             className="text-center text-base font-medium text-dark dark:text-white"
-                            key={user.id}
+                            key={customer.id}
                         >
+                            <TableCell className="!text-left">
+                                {customer.id}
+                            </TableCell>
+
                             <TableCell className="!text-left min-w-fit">
-                                {user.name}
+                                {customer.name}
                             </TableCell>
 
                             <TableCell className="!text-left">
-                                {user.email}
+                                {customer.email}
                             </TableCell>
 
-                            <TableCell>{user.role}</TableCell>
+                            <TableCell>{customer.phoneNumber}</TableCell>
 
                             <TableCell>
                                 <span
                                     className={cn(
                                         "inline-flex rounded-full px-3 py-1 text-sm font-medium",
-                                        user.status === "Active"
+                                        customer.status === "Active"
                                             ? "bg-green-100 text-green-800"
-                                            : user.status === "Inactive"
+                                            : customer.status === "Inactive"
                                                 ? "bg-red-100 text-red-800"
                                                 : "bg-yellow-100 text-yellow-800"
                                     )}
                                 >
-                                    {user.status}
+                                    {customer.status}
                                 </span>
                             </TableCell>
 
                             <TableCell className="!text-right">
-                                {user.lastLogin}
+                                {customer.lastLogin}
+                            </TableCell>
+
+                            <TableCell className="!text-right">
+                                <div className="flex items-center justify-end gap-2">
+                                    <button className="text-blue-500 hover:text-blue-700" title="Detail">
+                                        <PreviewIcon />
+                                    </button>
+                                    <button className="text-green-500 hover:text-green-700" title="Edit">
+                                        <PencilSquareIcon />
+                                    </button>
+                                    <button className="text-red-500 hover:text-red-700" title="Delete">
+                                        <TrashIcon />
+                                    </button>
+                                </div>
                             </TableCell>
                         </TableRow>
                     ))}

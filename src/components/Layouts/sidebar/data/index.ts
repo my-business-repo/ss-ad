@@ -9,8 +9,8 @@ export const NAV_DATA = [
         icon: Icons.HomeIcon,
         items: [
           {
-            title: "User List",
-            url: "/user-list",
+            title: "Customer List",
+            url: "/customers",
           },
           {
             title: "Membership Levels",
@@ -34,7 +34,32 @@ export const NAV_DATA = [
             title: "Withdrawal",
             url: "/trading/withdrawal",
           },
+
         ],
+      },
+      {
+        title: "Admin",
+        icon: Icons.Authentication, // Using Authentication icon as a temporary placeholder or reused
+        items: [
+          {
+            title: "Admin List",
+            url: "/trading/admin",
+          },
+        ]
+      },
+      {
+        title: "Product",
+        icon: Icons.FourCircle,
+        items: [
+          {
+            title: "Product List",
+            url: "/products",
+          },
+          {
+            title: "New Product",
+            url: "/products/new",
+          },
+        ]
       },
       {
         title: "Profile",
