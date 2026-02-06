@@ -3,7 +3,7 @@
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import { updateProduct } from "@/actions/product";
 import { useActionState } from "react";
-import { Product } from "@prisma/client";
+import { Product } from "@/generated/prisma";
 
 const initialState = {
     message: "",
