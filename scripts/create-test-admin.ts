@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { PrismaClient } from "../src/generated/prisma";
+import { PrismaClient } from "@prisma/client";
 import { hashPassword } from "../src/lib/password";
 import { generateUserId } from "../src/lib/user-id";
 

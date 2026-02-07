@@ -1,4 +1,4 @@
-import { AdminRole } from '../src/generated/prisma';
+import { AdminRole } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { db as prisma } from '../src/lib/db';
 
