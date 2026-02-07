@@ -5,7 +5,7 @@ const allowedOrigins = [
     'http://localhost:5173', // Vite default
     'http://localhost:3000', // Next.js default
     'http://localhost:5174', // Alternative Vite port
-    // Add your production frontend URL here when deploying
+    'https://ss-fe-ten.vercel.app', // Production frontend
 ];
 
 const corsOptions = {
