@@ -1,6 +1,8 @@
-import { AdminRole } from '@prisma/client';
+
 import bcrypt from 'bcryptjs';
 import { db as prisma } from '../src/lib/db';
+import { AdminRole } from '@prisma/client';
+
 
 async function main() {
     const password = await bcrypt.hash('password', 10);
