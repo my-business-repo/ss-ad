@@ -19,7 +19,7 @@ export function DonutChart({ data }: PropsType) {
       fontFamily: "inherit",
     },
     colors: ["#5750F1", "#5475E5", "#8099EC", "#ADBCF2"],
-    labels: data.map((item) => item.name),
+    labels: data.map((item: any) => item.name),
     legend: {
       show: true,
       position: "bottom",
@@ -27,7 +27,7 @@ export function DonutChart({ data }: PropsType) {
         horizontal: 10,
         vertical: 5,
       },
-      formatter: (legendName, opts) => {
+      formatter: (legendName: string, opts: any) => {
         const { seriesPercent } = opts.w.globals;
         return `${legendName}: ${seriesPercent[opts.seriesIndex]}%`;
       },
@@ -50,7 +50,7 @@ export function DonutChart({ data }: PropsType) {
               show: true,
               fontSize: "28px",
               fontWeight: "bold",
-              formatter: (val) => compactFormat(+val),
+              formatter: (val: any) => compactFormat(+val),
             },
           },
         },
@@ -90,7 +90,7 @@ export function DonutChart({ data }: PropsType) {
   return (
     <Chart
       options={chartOptions}
-      series={data.map((item) => item.amount)}
+      series={data.map((item: any) => item.amount)}
       type="donut"
     />
   );

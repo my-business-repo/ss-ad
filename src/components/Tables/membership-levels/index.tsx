@@ -110,7 +110,7 @@ export function MembershipTable({ className }: { className?: string }) {
                                 <TableCell colSpan={11} className="text-center py-8">No membership levels found.</TableCell>
                             </TableRow>
                         ) : (
-                            data.map((level) => (
+                            data.map((level: any) => (
                                 <TableRow
                                     className="text-center text-sm font-medium text-dark dark:text-white hover:bg-gray-100 dark:hover:bg-gray-800"
                                     key={level.id}

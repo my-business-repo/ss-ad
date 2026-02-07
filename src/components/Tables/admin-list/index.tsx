@@ -38,7 +38,7 @@ export async function AdminTable({ className }: { className?: string }) {
                 </TableHeader>
 
                 <TableBody>
-                    {data.map((admin) => (
+                    {data.map((admin: any) => (
                         <TableRow
                             className="text-center text-base font-medium text-dark dark:text-white"
                             key={admin.id}

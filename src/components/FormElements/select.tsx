@@ -10,9 +10,9 @@ type PropsType = {
   prefixIcon?: React.ReactNode;
   className?: string;
 } & (
-  | { placeholder?: string; defaultValue: string }
-  | { placeholder: string; defaultValue?: string }
-);
+    | { placeholder?: string; defaultValue: string }
+    | { placeholder: string; defaultValue?: string }
+  );
 
 export function Select({
   items,
@@ -58,7 +58,7 @@ export function Select({
             </option>
           )}
 
-          {items.map((item) => (
+          {items.map((item: any) => (
             <option key={item.value} value={item.value}>
               {item.label}
             </option>

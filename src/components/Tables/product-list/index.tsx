@@ -43,7 +43,7 @@ export async function ProductTable({ className }: { className?: string }) {
                 </TableHeader>
 
                 <TableBody>
-                    {data.map((product) => (
+                    {data.map((product: any) => (
                         <TableRow
                             className="text-center text-base font-medium text-dark dark:text-white"
                             key={product.id}

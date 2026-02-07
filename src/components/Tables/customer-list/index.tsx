@@ -41,7 +41,7 @@ export async function CustomerTable({ className }: { className?: string }) {
                 </TableHeader>
 
                 <TableBody>
-                    {data.map((customer) => (
+                    {data.map((customer: any) => (
                         <TableRow
                             className="text-center text-base font-medium text-dark dark:text-white"
                             key={customer.id}

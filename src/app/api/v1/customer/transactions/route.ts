@@ -50,7 +50,7 @@ export async function GET(req: Request) {
         });
 
         // Format response
-        const formattedTransactions = transactions.map((txn) => ({
+        const formattedTransactions = transactions.map((txn: any) => ({
             transaction_id: txn.transaction_id,
             account_id: txn.account.account_id,
             type: txn.type,

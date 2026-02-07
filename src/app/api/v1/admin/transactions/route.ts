@@ -32,7 +32,7 @@ export async function GET(req: Request) {
         });
 
         // Format response
-        const formattedTransactions = transactions.map((txn) => ({
+        const formattedTransactions = transactions.map((txn: any) => ({
             id: txn.id,
             transaction_id: txn.transaction_id,
             customer_name: txn.account.customer.name,

@@ -46,7 +46,7 @@ export async function getMembershipLevels(): Promise<MembershipLevel[]> {
             },
         });
 
-        return levels.map((level) => ({
+        return levels.map((level: any) => ({
             id: level.level_id.toString(),
             dbId: level.id,
             name: level.name,

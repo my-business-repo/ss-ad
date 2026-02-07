@@ -21,10 +21,10 @@ export async function getCustomers(): Promise<CustomerListItem[]> {
         },
     });
 
-    return customers.map((customer) => {
+    return customers.map((customer: any) => {
         // Calculate total balance and profit from all accounts
-        const totalBalance = customer.accounts.reduce((sum, account) => sum + account.balance, 0);
-        const totalProfit = customer.accounts.reduce((sum, account) => sum + account.profit, 0);
+        const totalBalance = customer.accounts.reduce((sum: any, account: any) => sum + account.balance, 0);
+        const totalProfit = customer.accounts.reduce((sum: any, account: any) => sum + account.profit, 0);
 
         return {
             id: customer.user_id,

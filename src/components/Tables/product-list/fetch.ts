@@ -19,7 +19,7 @@ export async function getProducts(): Promise<ProductListItem[]> {
         },
     });
 
-    return products.map((product) => ({
+    return products.map((product: any) => ({
         id: product.id,
         product_id: product.product_id,
         name: product.name,
