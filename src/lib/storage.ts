@@ -22,6 +22,9 @@ const s3Client = new S3Client({
     },
 });
 
+// Alias for backward compatibility or clarity if needed
+export const uploadToR2 = uploadFile;
+
 export async function uploadFile(file: File, folder: string = "products"): Promise<string> {
     if (!R2_BUCKET_NAME) {
         throw new Error("R2_BUCKET_NAME is not defined");

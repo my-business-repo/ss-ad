@@ -33,6 +33,44 @@ model Customer {
   updatedAt          DateTime            @updatedAt
   status             String              @default("active")
   verificationTokens VerificationToken[]
+  accounts           Account[]
+
+  levelId Int?
+  level   CustomerLevel? @relation(fields: [levelId], references: [id])
+}
+
+model Account {
+  id           Int           @id @default(autoincrement())
+  account_id   String        @unique @db.VarChar(8)
+  customerId   Int
+  customer     Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  balance      Float         @default(0)
+  profit       Float         @default(0)
+  currency     String        @default("USD") @db.VarChar(10)
+  status       String        @default("active")
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  transactions Transaction[]
+
+  @@index([customerId], map: "Account_customerId_fkey")
+}
+
+model Transaction {
+  id             Int               @id @default(autoincrement())
+  transaction_id String            @unique @db.VarChar(12)
+  accountId      Int
+  account        Account           @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  type           TransactionType
+  amount         Float
+  status         TransactionStatus @default(PENDING)
+  proofImageUrl  String?           @db.Text
+  adminNote      String?           @db.Text
+  processedBy    Int?
+  processedAt    DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  @@index([accountId], map: "Transaction_accountId_fkey")
 }
 
 model VerificationToken {
@@ -65,4 +103,57 @@ enum AdminRole {
   SUPER_ADMIN
   ADMIN
   MODERATOR
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+}
+
+enum TransactionStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+model CustomerLevel {
+  id           Int     @id @default(autoincrement())
+  level_id     Int     @unique // Logic level (1, 2, 3...)
+  name         String // VIP1, VIP2
+  icon         String? // URL
+  upgradePrice Float   @default(0)
+
+  // Order Info
+  commissionRate          Float // Percentage
+  minBalanceRatio         Float // Percentage
+  maxBalanceRatio         Float // Percentage
+  minProductCount         Int   @default(1)
+  maxProductCount         Int   @default(1)
+  dailyOrderLimit         Int // 0 = unlimited? No, usually specific.
+  minBalanceToAcceptOrder Float @default(0)
+
+  // Withdrawal Info
+  minWithdrawalAmount  Float @default(0)
+  maxWithdrawalAmount  Float @default(0)
+  dailyWithdrawalCount Int   @default(0)
+
+  // Fees - Fixed / Rate
+  trcWithdrawalFee   Float @default(0)
+  trcWithdrawalRate  Float @default(0)
+  ercWithdrawalFee   Float @default(0)
+  ercWithdrawalRate  Float @default(0)
+  bankWithdrawalFee  Float @default(0)
+  bankWithdrawalRate Float @default(0)
+
+  // Upgrade & Refer
+  autoUpgradeInviteCount   Int   @default(0)
+  referralCommissionRateL1 Float @default(0)
+  referralCommissionRateL2 Float @default(0)
+  referralCommissionRateL3 Float @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  customers Customer[]
 }

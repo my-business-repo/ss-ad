@@ -32,6 +32,8 @@ export async function CustomerTable({ className }: { className?: string }) {
                         <TableHead className="min-w-[120px] !text-left">Name</TableHead>
                         <TableHead className="!text-left">Email</TableHead>
                         <TableHead>Phone</TableHead>
+                        <TableHead>Balance</TableHead>
+                        <TableHead>Profit</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead className="!text-right">Joined</TableHead>
                         <TableHead className="!text-right">Actions</TableHead>
@@ -57,6 +59,19 @@ export async function CustomerTable({ className }: { className?: string }) {
                             </TableCell>
 
                             <TableCell>{customer.phoneNumber}</TableCell>
+
+                            <TableCell>
+                                ${customer.balance.toFixed(2)}
+                            </TableCell>
+
+                            <TableCell>
+                                <span className={cn(
+                                    "font-semibold",
+                                    customer.profit >= 0 ? "text-green-600" : "text-red-600"
+                                )}>
+                                    ${customer.profit.toFixed(2)}
+                                </span>
+                            </TableCell>
 
                             <TableCell>
                                 <span

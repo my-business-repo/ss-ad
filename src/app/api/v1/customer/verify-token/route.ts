@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { verifyPassword } from '@/lib/password';
-import { signToken } from '@/lib/jwt';
+import { verifyToken } from '@/lib/jwt';
 import { handleCors, addCorsHeaders } from '@/lib/cors';
 
 // Handle OPTIONS preflight request
@@ -17,19 +16,33 @@ export async function POST(req: Request) {
     if (corsResponse) return corsResponse;
 
     try {
-        const body = await req.json();
-        const { email, password } = body;
+        // Extract token from Authorization header
+        const authHeader = req.headers.get('authorization');
 
-        if (!email || !password) {
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
             const response = NextResponse.json(
-                { error: 'Email and password are required' },
-                { status: 400 }
+                { error: 'Invalid token' },
+                { status: 401 }
             );
             return addCorsHeaders(response, req);
         }
 
+        const token = authHeader.substring(7); // Remove 'Bearer ' prefix
+
+        // Verify token (returns null if invalid or expired)
+        const decoded = verifyToken(token);
+
+        if (!decoded) {
+            const response = NextResponse.json(
+                { error: 'Invalid token' },
+                { status: 401 }
+            );
+            return addCorsHeaders(response, req);
+        }
+
+        // Get customer from database
         const customer = await db.customer.findUnique({
-            where: { email },
+            where: { id: decoded.id },
             include: {
                 level: true, // Include level info
             },
@@ -37,29 +50,14 @@ export async function POST(req: Request) {
 
         if (!customer) {
             const response = NextResponse.json(
-                { error: 'Invalid credentials' },
+                { error: 'Invalid token' },
                 { status: 401 }
             );
             return addCorsHeaders(response, req);
         }
 
-        const isValid = await verifyPassword(password, customer.password);
-
-        if (!isValid) {
-            const response = NextResponse.json(
-                { error: 'Invalid credentials' },
-                { status: 401 }
-            );
-            return addCorsHeaders(response, req);
-        }
-
-        const token = signToken({
-            id: customer.id,
-            email: customer.email,
-        });
-
+        // Return customer information
         const response = NextResponse.json({
-            token,
             customer: {
                 id: customer.id,
                 name: customer.name,
@@ -68,8 +66,9 @@ export async function POST(req: Request) {
             },
         });
         return addCorsHeaders(response, req);
+
     } catch (error) {
-        console.error('Signin error:', error);
+        console.error('Token verification error:', error);
         const response = NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }

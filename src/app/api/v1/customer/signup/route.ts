@@ -2,18 +2,31 @@ import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { hashPassword, generatePassword } from '@/lib/password';
 import { generateUserId } from '@/lib/user-id';
+import { generateAccountId } from '@/lib/account-id';
+import { handleCors, addCorsHeaders } from '@/lib/cors';
+
+// Handle OPTIONS preflight request
+export async function OPTIONS(req: Request) {
+    const corsResponse = handleCors(req);
+    if (corsResponse) return corsResponse;
+    return new NextResponse(null, { status: 200 });
+}
 
 export async function POST(req: Request) {
+    // Handle CORS preflight
+    const corsResponse = handleCors(req);
+    if (corsResponse) return corsResponse;
     try {
         const body = await req.json();
         const { name, email, password, fundPassword, phoneNumber, referCode } = body;
 
         // 1. Basic Validation
         if (!name || !email || !password || !fundPassword) {
-            return NextResponse.json(
+            const response = NextResponse.json(
                 { error: 'Name, email, password, and fund password are required' },
                 { status: 400 }
             );
+            return addCorsHeaders(response, req);
         }
 
         // 2. Check if email already exists
@@ -22,10 +35,11 @@ export async function POST(req: Request) {
         });
 
         if (existingUser) {
-            return NextResponse.json(
+            const response = NextResponse.json(
                 { error: 'Email already exists' },
                 { status: 409 }
             );
+            return addCorsHeaders(response, req);
         }
 
         // 3. Validate Upline Refer Code (if provided)
@@ -38,10 +52,11 @@ export async function POST(req: Request) {
             });
 
             if (!uplineAdmin && !uplineCustomer) {
-                return NextResponse.json(
+                const response = NextResponse.json(
                     { error: 'Invalid refer code' },
                     { status: 400 }
                 );
+                return addCorsHeaders(response, req);
             }
         }
 
@@ -81,6 +96,7 @@ export async function POST(req: Request) {
                 phoneNumber,
                 referCode: newReferCode,
                 user_id: 'TEMP',
+                levelId: 1, // Default to VIP1
             },
         });
 
@@ -92,7 +108,27 @@ export async function POST(req: Request) {
             },
         });
 
-        return NextResponse.json({
+        // 8. Create Account for the customer (2-step process for account_id)
+        const account = await db.account.create({
+            data: {
+                customerId: finalCustomer.id,
+                account_id: 'TEMP',
+                balance: 0,
+                profit: 0,
+                currency: 'USD',
+                status: 'active',
+            },
+        });
+
+        // 9. Update account_id
+        const finalAccount = await db.account.update({
+            where: { id: account.id },
+            data: {
+                account_id: generateAccountId(account.id),
+            },
+        });
+
+        const response = NextResponse.json({
             message: 'Customer registered successfully',
             customer: {
                 id: finalCustomer.id,
@@ -101,13 +137,24 @@ export async function POST(req: Request) {
                 email: finalCustomer.email,
                 referCode: finalCustomer.referCode,
             },
+            account: {
+                id: finalAccount.id,
+                account_id: finalAccount.account_id,
+                balance: finalAccount.balance,
+                profit: finalAccount.profit,
+                currency: finalAccount.currency,
+                status: finalAccount.status,
+            },
         }, { status: 201 });
+        return addCorsHeaders(response, req);
+
 
     } catch (error) {
         console.error('Signup error:', error);
-        return NextResponse.json(
+        const response = NextResponse.json(
             { error: 'Internal server error' },
             { status: 500 }
         );
+        return addCorsHeaders(response, req);
     }
 }
