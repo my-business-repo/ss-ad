@@ -2,6 +2,9 @@ import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import Link from "next/link";
 import { getDeposits } from "@/actions/depositActions";
 
+// Force dynamic rendering to always fetch fresh data
+export const dynamic = 'force-dynamic';
+
 export default async function DepositPage() {
     // Fetch all deposit transactions using server action
     const deposits = await getDeposits();

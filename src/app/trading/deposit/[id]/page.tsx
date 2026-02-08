@@ -6,6 +6,9 @@ import { getDepositById } from "@/actions/depositActions";
 import { DepositActions } from "@/components/Trading/DepositActions";
 import { auth } from "@/auth";
 
+// Force dynamic rendering to always fetch fresh data
+export const dynamic = 'force-dynamic';
+
 export default async function DepositDetailPage({ params }: { params: Promise<{ id: string }> }) {
     // Await params in Next.js 15+
     const { id } = await params;
