@@ -72,13 +72,13 @@ export default function EditProductForm({ product }: { product: Product }) {
 
                         <div className="w-full xl:w-1/2">
                             <label className="mb-3 block text-body-sm font-medium text-dark dark:text-white">
-                                Commission <span className="text-red">*</span>
+                                Commission (%) <span className="text-red">*</span>
                             </label>
                             <input
                                 type="number"
                                 name="commission"
                                 defaultValue={product.commission}
-                                placeholder="Enter commission amount"
+                                placeholder="Enter commission percentage"
                                 step="0.01"
                                 required
                                 className="w-full rounded-[7px] border-[1.5px] border-stroke bg-transparent px-5.5 py-3 text-dark outline-none transition focus:border-primary active:border-primary dark:border-dark-3 dark:bg-dark-2 dark:text-white dark:focus:border-primary"

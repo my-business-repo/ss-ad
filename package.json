@@ -20,6 +20,7 @@
     "clsx": "^2.1.1",
     "dayjs": "^1.11.13",
     "dotenv": "^17.2.3",
+    "firebase": "^12.9.0",
     "flatpickr": "^4.6.13",
     "jsonwebtoken": "^9.0.3",
     "jsvectormap": "^1.6.0",

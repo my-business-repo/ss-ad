@@ -8,6 +8,9 @@ export const metadata = {
     description: "List of all administrators",
 };
 
+// Force dynamic rendering to always fetch fresh data
+export const dynamic = 'force-dynamic';
+
 export default function AdminListPage() {
     return (
         <>

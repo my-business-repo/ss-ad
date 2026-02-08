@@ -34,8 +34,9 @@ model Customer {
   verificationTokens VerificationToken[]
   accounts           Account[]
 
-  levelId Int?
-  level   CustomerLevel? @relation(fields: [levelId], references: [id])
+  levelId             Int?
+  level               CustomerLevel?      @relation(fields: [levelId], references: [id])
+  withdrawalAddresses WithdrawalAddress[]
 }
 
 model Account {
@@ -63,6 +64,7 @@ model Transaction {
   amount         Float
   status         TransactionStatus @default(PENDING)
   proofImageUrl  String?           @db.Text
+  address        String?           @db.VarChar(255)
   adminNote      String?           @db.Text
   processedBy    Int?
   processedAt    DateTime?
@@ -155,4 +157,21 @@ model CustomerLevel {
   updatedAt DateTime @updatedAt
 
   customers Customer[]
+}
+
+model WithdrawalAddress {
+  id          Int      @id @default(autoincrement())
+  customerId  Int
+  customer    Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  type        String   @db.VarChar(20) // 'CRYPTO' or 'BANK'
+  network     String?  @db.VarChar(20) // 'TRC20', 'ERC20' (only for crypto)
+  address     String   @db.VarChar(255) // Wallet address or Bank Account Number
+  bankName    String?  @db.VarChar(100) // Only for bank
+  accountName String?  @db.VarChar(100) // Only for bank
+  details     String?  @db.VarChar(255) // Extra details e.g. 'Binance Pay'
+  status      String   @default("active") @db.VarChar(20)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([customerId])
 }

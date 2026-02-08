@@ -62,8 +62,10 @@ export async function POST(req: Request) {
             token,
             customer: {
                 id: customer.id,
+                user_id: customer.user_id,
                 name: customer.name,
                 email: customer.email,
+                referCode: customer.referCode,
                 level: customer.level,
             },
         });

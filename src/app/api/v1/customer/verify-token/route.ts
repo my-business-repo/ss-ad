@@ -45,6 +45,7 @@ export async function POST(req: Request) {
             where: { id: decoded.id },
             include: {
                 level: true, // Include level info
+                accounts: true, // Include accounts
             },
         });
 
@@ -56,14 +57,26 @@ export async function POST(req: Request) {
             return addCorsHeaders(response, req);
         }
 
+        const account = customer.accounts[0];
+
         // Return customer information
         const response = NextResponse.json({
             customer: {
                 id: customer.id,
+                user_id: customer.user_id,
                 name: customer.name,
                 email: customer.email,
+                referCode: customer.referCode,
                 level: customer.level,
             },
+            account: account ? {
+                id: account.id,
+                account_id: account.account_id,
+                balance: account.balance,
+                profit: account.profit,
+                currency: account.currency,
+                status: account.status,
+            } : null,
         });
         return addCorsHeaders(response, req);
 

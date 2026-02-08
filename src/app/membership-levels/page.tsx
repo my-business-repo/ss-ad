@@ -2,6 +2,9 @@ import { MembershipTable } from "@/components/Tables/membership-levels";
 import { Suspense } from "react";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 
+// Force dynamic rendering to always fetch fresh data
+export const dynamic = 'force-dynamic';
+
 export default function MembershipLevelsPage() {
     return (
         <>

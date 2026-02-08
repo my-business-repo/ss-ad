@@ -6,7 +6,10 @@ import StarRating from "@/components/StarRating";
 import Link from "next/link";
 import { ArrowLeftIcon } from "@/assets/icons";
 
-export default async function ProductDetailPage({ params }: { params: { id: string } }) {
+// Force dynamic rendering to always fetch fresh data
+export const dynamic = 'force-dynamic';
+
+export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const resolvedParams = await params;
     const id = parseInt(resolvedParams.id);
 
@@ -77,7 +80,7 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
                                 </div>
                                 <div>
                                     <label className="text-sm text-gray-500 dark:text-gray-400">Commission</label>
-                                    <p className="text-lg font-bold text-green-500">${product.commission.toFixed(2)}</p>
+                                    <p className="text-lg font-bold text-green-500">{product.commission.toFixed(1)}%</p>
                                 </div>
                             </div>
 

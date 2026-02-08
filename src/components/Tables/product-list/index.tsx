@@ -13,9 +13,18 @@ import { PencilSquareIcon, TrashIcon } from "@/assets/icons";
 import { PreviewIcon } from "../icons";
 import DeleteProductButton from "./delete-button";
 import StarRating from "@/components/StarRating";
+import { Pagination } from "@/components/Pagination";
 
-export async function ProductTable({ className }: { className?: string }) {
-    const data = await getProducts();
+interface ProductTableProps {
+    className?: string;
+    page?: number;
+    pageSize?: number;
+}
+
+export async function ProductTable({ className, page = 1, pageSize = 10 }: ProductTableProps) {
+    const { products: data, total } = await getProducts(page, pageSize);
+    const totalPages = Math.ceil(total / pageSize);
+    const startIndex = (page - 1) * pageSize;
 
     return (
         <div
@@ -24,13 +33,19 @@ export async function ProductTable({ className }: { className?: string }) {
                 className,
             )}
         >
-            <h2 className="mb-4 text-body-2xlg font-bold text-dark dark:text-white">
-                Product List
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="text-body-2xlg font-bold text-dark dark:text-white">
+                    Product List
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Showing {startIndex + 1}-{Math.min(startIndex + pageSize, total)} of {total} products
+                </p>
+            </div>
 
             <Table>
                 <TableHeader>
                     <TableRow className="border-none uppercase [&>th]:text-center">
+                        <TableHead className="w-[60px] !text-center">#</TableHead>
                         <TableHead className="min-w-[150px] !text-left">Image</TableHead>
                         <TableHead className="min-w-[100px] !text-left">Product ID</TableHead>
                         <TableHead className="min-w-[150px] !text-left">Name</TableHead>
@@ -43,11 +58,15 @@ export async function ProductTable({ className }: { className?: string }) {
                 </TableHeader>
 
                 <TableBody>
-                    {data.map((product: any) => (
+                    {data.map((product: any, index: number) => (
                         <TableRow
                             className="text-center text-base font-medium text-dark dark:text-white"
                             key={product.id}
                         >
+                            <TableCell className="!text-center font-semibold text-gray-500 dark:text-gray-400">
+                                {startIndex + index + 1}
+                            </TableCell>
+
                             <TableCell className="!text-left">
                                 <div className="h-12 w-12 rounded-md overflow-hidden bg-gray-100 dark:bg-gray-700">
                                     {product.image ? (
@@ -77,7 +96,7 @@ export async function ProductTable({ className }: { className?: string }) {
                             </TableCell>
 
                             <TableCell className="!text-right">
-                                ${product.commission.toFixed(2)}
+                                {product.commission.toFixed(1)}%
                             </TableCell>
 
                             <TableCell className="!text-center flex justify-center py-4">
@@ -120,13 +139,19 @@ export async function ProductTable({ className }: { className?: string }) {
                     ))}
                     {data.length === 0 && (
                         <TableRow>
-                            <TableCell colSpan={7} className="text-center py-8">
+                            <TableCell colSpan={9} className="text-center py-8">
                                 No products found.
                             </TableCell>
                         </TableRow>
                     )}
                 </TableBody>
             </Table>
+
+            <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                baseUrl="/products"
+            />
         </div>
     );
 }
