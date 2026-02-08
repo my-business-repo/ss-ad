@@ -28,7 +28,19 @@ const nextConfig = {
         port: "",
       },
     ]
-  }
+  },
+  experimental: {
+    serverActions: {
+      allowedOrigins: [
+        'localhost:3000',
+        'localhost:5173',
+        'localhost:5174',
+        'localhost:4173',
+        'ss-fe-ten.vercel.app',
+      ],
+    },
+  },
+  skipTrailingSlashRedirect: true,
 };
 
 export default nextConfig;

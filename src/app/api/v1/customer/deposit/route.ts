@@ -1,8 +1,9 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
 import { uploadFile } from '@/lib/storage';
-import { generateTransactionId } from '@/lib/transaction-id';
+import { generateRandomTransactionId } from '@/lib/transaction-id';
 import { handleCors, addCorsHeaders } from '@/lib/cors';
+
 
 // Handle OPTIONS preflight request
 export async function OPTIONS(req: Request) {
@@ -20,14 +21,25 @@ export async function POST(req: Request) {
 
     try {
         const formData = await req.formData();
-        const accountId = parseInt(formData.get('accountId') as string);
-        const amount = parseFloat(formData.get('amount') as string);
+        const accountIdStr = formData.get('accountId') as string;
+        const amountStr = formData.get('amount') as string;
         const proofImage = formData.get('proofImage') as File | null;
 
+        const accountId = parseInt(accountIdStr);
+        const amount = parseFloat(amountStr);
+
         // 1. Validation
-        if (!accountId || isNaN(amount)) {
+        if (!accountIdStr || isNaN(accountId)) {
             const response = NextResponse.json(
-                { error: 'Account ID and amount are required' },
+                { error: 'Valid Account ID is required' },
+                { status: 400 }
+            );
+            return addCorsHeaders(response, req);
+        }
+
+        if (!amountStr || isNaN(amount)) {
+            const response = NextResponse.json(
+                { error: 'Valid amount is required' },
                 { status: 400 }
             );
             return addCorsHeaders(response, req);
@@ -70,6 +82,7 @@ export async function POST(req: Request) {
         let proofImageUrl: string;
         try {
             proofImageUrl = await uploadFile(proofImage, 'transactions');
+
         } catch (error) {
             console.error('Failed to upload proof image:', error);
             const response = NextResponse.json(
@@ -79,7 +92,9 @@ export async function POST(req: Request) {
             return addCorsHeaders(response, req);
         }
 
-        // 4. Create transaction (two-step process for transaction_id)
+        // 4. Generate unique transaction ID and create transaction
+        const transactionId = generateRandomTransactionId();
+
         const transaction = await db.transaction.create({
             data: {
                 accountId,
@@ -87,29 +102,22 @@ export async function POST(req: Request) {
                 amount,
                 status: 'PENDING',
                 proofImageUrl,
-                transaction_id: 'TEMP',
-            },
-        });
-
-        // 5. Update transaction_id
-        const finalTransaction = await db.transaction.update({
-            where: { id: transaction.id },
-            data: {
-                transaction_id: generateTransactionId(transaction.id),
+                transaction_id: transactionId,
             },
         });
 
         const response = NextResponse.json({
             message: 'Deposit request submitted successfully',
             transaction: {
-                transaction_id: finalTransaction.transaction_id,
-                amount: finalTransaction.amount,
-                status: finalTransaction.status,
-                proof_image_url: finalTransaction.proofImageUrl,
-                created_at: finalTransaction.createdAt,
+                transaction_id: transaction.transaction_id,
+                amount: transaction.amount,
+                status: transaction.status,
+                proof_image_url: transaction.proofImageUrl,
+                created_at: transaction.createdAt,
             },
         }, { status: 201 });
         return addCorsHeaders(response, req);
+
 
     } catch (error) {
         console.error('Deposit request error:', error);

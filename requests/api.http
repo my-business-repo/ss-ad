@@ -37,3 +37,8 @@ Content-Type: application/json
 POST {{baseUrl}}/api/v1/customer/verify-token
 Content-Type: application/json
 Authorization: Bearer {{authToken}}
+
+### Get All Customer Info
+GET {{baseUrl}}/api/v1/customer
+Content-Type: application/json
+
