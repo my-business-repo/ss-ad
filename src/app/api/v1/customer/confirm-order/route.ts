@@ -180,6 +180,9 @@ export async function POST(req: Request) {
             }
 
             return updatedOrder;
+        }, {
+            maxWait: 5000, // default: 2000
+            timeout: 20000, // default: 5000
         });
 
         // 7. Return updated order details
