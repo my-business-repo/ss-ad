@@ -37,6 +37,7 @@ model Customer {
   levelId             Int?
   level               CustomerLevel?      @relation(fields: [levelId], references: [id])
   withdrawalAddresses WithdrawalAddress[]
+  orderPlans          OrderPlan[]
 }
 
 model Account {
@@ -98,6 +99,56 @@ model Product {
   status      String   @default("active")
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  orders      Order[]
+}
+
+model OrderPlan {
+  id              Int             @id @default(autoincrement())
+  plan_id         String          @unique @db.VarChar(12)
+  customerId      Int
+  customer        Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  totalOrders     Int             @default(20)
+  completedOrders Int             @default(0)
+  status          OrderPlanStatus @default(ACTIVE)
+  startedAt       DateTime        @default(now())
+  completedAt     DateTime?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  orders          Order[]
+
+  @@index([customerId])
+}
+
+model Order {
+  id          Int         @id @default(autoincrement())
+  order_id    String      @unique @db.VarChar(12)
+  orderPlanId Int
+  orderPlan   OrderPlan   @relation(fields: [orderPlanId], references: [id], onDelete: Cascade)
+  productId   Int
+  product     Product     @relation(fields: [productId], references: [id])
+  orderNumber Int // Order sequence (1-20)
+  amount      Float // Product price at time of order
+  commission  Float // Commission earned
+  status      OrderStatus @default(PENDING)
+  completedAt DateTime?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  @@index([orderPlanId])
+  @@index([productId])
+}
+
+enum OrderPlanStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum OrderStatus {
+  PENDING
+  COMPLETED
+  SKIPPED
+  NOT_START
 }
 
 enum AdminRole {

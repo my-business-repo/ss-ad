@@ -42,3 +42,47 @@ Authorization: Bearer {{authToken}}
 GET {{baseUrl}}/api/v1/customer
 Content-Type: application/json
 
+### Activate Order Plan
+POST {{baseUrl}}/api/v1/customer/activate-order-plan
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+
+### Get Order Plan
+GET {{baseUrl}}/api/v1/customer/order-plan
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+
+### Start Order
+POST {{baseUrl}}/api/v1/customer/start-order
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+    "order_id": "ORD016I3CG"
+}
+
+
+### Get Orders (excluding NOT_START)
+GET {{baseUrl}}/api/v1/customer/orders
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+### Confirm Order
+POST {{baseUrl}}/api/v1/customer/confirm-order
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+    "order_id": "ORD01B8Y75"
+}
+
+### Complete Order
+POST {{baseUrl}}/api/v1/customer/complete-order
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.token}}
+
+{
+    "order_id": "ORD01B8Y75"
+}
