@@ -1,10 +1,10 @@
-import { OrderList } from "@/components/Trading/OrderList";
+import { OrderPlanList } from "@/components/Trading/OrderPlanList";
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 
 // Force dynamic rendering to always fetch fresh data
 export const dynamic = 'force-dynamic';
 
-export default async function OrderListPage({
+export default async function OrderPlanPage({
     searchParams
 }: {
     searchParams: Promise<{ page?: string; search?: string }>
@@ -15,10 +15,10 @@ export default async function OrderListPage({
 
     return (
         <>
-            <Breadcrumb pageName="Order List" />
+            <Breadcrumb pageName="Order Plan" />
 
             <div className="flex flex-col gap-10">
-                <OrderList page={page} pageSize={10} search={search} />
+                <OrderPlanList page={page} pageSize={10} search={search} />
             </div>
         </>
     );

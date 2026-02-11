@@ -27,6 +27,10 @@ export const NAV_DATA = [
             url: "/trading/order-list",
           },
           {
+            title: "Order Plan",
+            url: "/trading/order-plan",
+          },
+          {
             title: "Deposit",
             url: "/trading/deposit",
           },

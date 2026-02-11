@@ -14,18 +14,26 @@ export type ProductListItem = {
     image: string | null;
 };
 
-export async function getProducts(page: number = 1, pageSize: number = 10): Promise<{ products: ProductListItem[], total: number }> {
+export async function getProducts(page: number = 1, pageSize: number = 10, search: string = ''): Promise<{ products: ProductListItem[], total: number }> {
     const skip = (page - 1) * pageSize;
+
+    const where = search ? {
+        OR: [
+            { name: { contains: search } },
+            { product_id: { contains: search } },
+        ]
+    } : {};
 
     const [products, total] = await Promise.all([
         db.product.findMany({
+            where,
             skip,
             take: pageSize,
             orderBy: {
                 createdAt: "desc",
             },
         }),
-        db.product.count()
+        db.product.count({ where })
     ]);
 
     return {
