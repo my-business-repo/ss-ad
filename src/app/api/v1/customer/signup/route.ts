@@ -142,6 +142,21 @@ export async function POST(req: Request) {
                 status: finalAccount.status,
             },
         }, { status: 201 });
+
+        // Trigger Notification
+        try {
+            await db.notification.create({
+                data: {
+                    type: 'REGISTER',
+                    message: `New customer registered: ${finalCustomer.name} (${finalCustomer.email})`,
+                    customerId: finalCustomer.id,
+                },
+            });
+        } catch (error) {
+            console.error('Failed to create notification:', error);
+            // Continue execution, don't fail the request
+        }
+
         return addCorsHeaders(response, req);
 
 

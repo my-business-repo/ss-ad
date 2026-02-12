@@ -9,6 +9,10 @@ export const NAV_DATA = [
         icon: Icons.HomeIcon,
         items: [
           {
+            title: "Home",
+            url: "/",
+          },
+          {
             title: "Customer List",
             url: "/customers",
           },
@@ -82,6 +86,12 @@ export const NAV_DATA = [
   {
     label: "OTHERS",
     items: [
+      {
+        title: "Notifications",
+        url: "/notifications",
+        icon: Icons.Bell,
+        items: [],
+      },
       {
         title: "Chatting",
         url: "/chatting",

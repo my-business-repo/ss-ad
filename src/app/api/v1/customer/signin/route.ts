@@ -43,12 +43,21 @@ export async function POST(req: Request) {
             return addCorsHeaders(response, req);
         }
 
+
         const isValid = await verifyPassword(password, customer.password);
 
         if (!isValid) {
             const response = NextResponse.json(
                 { error: 'Invalid credentials' },
                 { status: 401 }
+            );
+            return addCorsHeaders(response, req);
+        }
+
+        if (customer.status !== 'active') {
+            const response = NextResponse.json(
+                { error: `Account is ${customer.status}. Please contact support.` },
+                { status: 403 }
             );
             return addCorsHeaders(response, req);
         }

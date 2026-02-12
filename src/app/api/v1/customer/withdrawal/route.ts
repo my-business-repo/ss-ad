@@ -188,6 +188,20 @@ export async function POST(req: Request) {
                 created_at: transaction.createdAt,
             },
         }, { status: 201 });
+
+        // Trigger Notification
+        try {
+            await db.notification.create({
+                data: {
+                    type: 'WITHDRAWAL',
+                    message: `New withdrawal request: $${transaction.amount} from Account ${accountId}`,
+                    customerId: account.customer.id,
+                },
+            });
+        } catch (error) {
+            console.error('Failed to create notification:', error);
+        }
+
         return addCorsHeaders(response, req);
 
     } catch (error) {

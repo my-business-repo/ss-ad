@@ -38,6 +38,7 @@ model Customer {
   level               CustomerLevel?      @relation(fields: [levelId], references: [id])
   withdrawalAddresses WithdrawalAddress[]
   orderPlans          OrderPlan[]
+  notifications       Notification[]
 }
 
 model Account {
@@ -223,6 +224,18 @@ model WithdrawalAddress {
   status      String   @default("active") @db.VarChar(20)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+
+  @@index([customerId])
+}
+
+model Notification {
+  id         Int       @id @default(autoincrement())
+  type       String // REGISTER, DEPOSIT, WITHDRAWAL, MESSAGE
+  message    String
+  isRead     Boolean   @default(false)
+  customerId Int?
+  customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  createdAt  DateTime  @default(now())
 
   @@index([customerId])
 }

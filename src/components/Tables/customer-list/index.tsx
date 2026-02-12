@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
     Table,
     TableBody,
@@ -8,8 +9,10 @@ import {
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { getCustomers } from "./fetch";
-import { PencilSquareIcon, TrashIcon } from "@/assets/icons";
+import { PencilSquareIcon } from "@/assets/icons";
 import { PreviewIcon } from "../icons";
+
+import { CustomerDeleteButton } from "./delete-button";
 
 export async function CustomerTable({ className }: { className?: string }) {
     const data = await getCustomers();
@@ -94,15 +97,16 @@ export async function CustomerTable({ className }: { className?: string }) {
 
                             <TableCell className="!text-right">
                                 <div className="flex items-center justify-end gap-2">
-                                    <button className="text-blue-500 hover:text-blue-700" title="Detail">
+                                    <Link href={`/customers/${customer.id}`} className="text-blue-500 hover:text-blue-700" title="Detail">
                                         <PreviewIcon />
-                                    </button>
-                                    <button className="text-green-500 hover:text-green-700" title="Edit">
+                                    </Link>
+                                    <Link href={`/customers/${customer.id}/edit`} className="text-green-500 hover:text-green-700" title="Edit">
                                         <PencilSquareIcon />
-                                    </button>
-                                    <button className="text-red-500 hover:text-red-700" title="Delete">
-                                        <TrashIcon />
-                                    </button>
+                                    </Link>
+                                    <CustomerDeleteButton
+                                        customerId={customer.id}
+                                        customerName={customer.name}
+                                    />
                                 </div>
                             </TableCell>
                         </TableRow>

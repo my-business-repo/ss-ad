@@ -4,44 +4,62 @@ import { OverviewCard } from "./card";
 import * as icons from "./icons";
 
 export async function OverviewCardsGroup() {
-  const { views, profit, products, users } = await getOverviewData();
+  const { users, admins, deposits, withdrawals, orders, products } = await getOverviewData();
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-4 2xl:gap-7.5">
+    <div className="grid gap-4 sm:grid-cols-2 sm:gap-6 xl:grid-cols-3 2xl:gap-7.5">
       <OverviewCard
-        label="Total Views"
+        label="Total Users"
         data={{
-          ...views,
-          value: compactFormat(views.value),
+          value: compactFormat(users.value),
+          growthRate: 0,
         }}
-        Icon={icons.Views}
+        Icon={icons.Users}
       />
 
       <OverviewCard
-        label="Total Profit"
+        label="Total Admins"
         data={{
-          ...profit,
-          value: "$" + compactFormat(profit.value),
+          value: compactFormat(admins.value),
+          growthRate: 0,
+        }}
+        Icon={icons.Users}
+      />
+
+      <OverviewCard
+        label="Total Deposits"
+        data={{
+          value: "$" + compactFormat(deposits.value),
+          growthRate: 0,
         }}
         Icon={icons.Profit}
       />
 
       <OverviewCard
-        label="Total Products"
+        label="Total Withdrawals"
         data={{
-          ...products,
-          value: compactFormat(products.value),
+          value: "$" + compactFormat(withdrawals.value),
+          growthRate: 0,
+        }}
+        Icon={icons.Profit}
+      />
+
+      <OverviewCard
+        label="Total Orders"
+        data={{
+          value: compactFormat(orders.value),
+          growthRate: 0,
         }}
         Icon={icons.Product}
       />
 
       <OverviewCard
-        label="Total Users"
+        label="Total Products"
         data={{
-          ...users,
-          value: compactFormat(users.value),
+          value: compactFormat(products.value),
+          growthRate: 0,
         }}
-        Icon={icons.Users}
+        Icon={icons.Product}
       />
     </div>
   );

@@ -86,3 +86,14 @@ Authorization: Bearer {{login.response.body.token}}
 {
     "order_id": "ORD01B8Y75"
 }
+
+
+### Send Message
+POST {{baseUrl}}/api/v1/customer/chat/message
+Content-Type: application/json
+Authorization: Bearer {{authToken}}
+
+{
+    "text": "Hello, how are you?",
+    "img": ""
+}
