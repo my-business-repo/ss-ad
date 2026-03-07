@@ -18,18 +18,26 @@ export async function POST(req: Request) {
 
     try {
         const body = await req.json();
-        const { email, password } = body;
+        const { email, username, password } = body;
 
-        if (!email || !password) {
+        const identifier = email || username;
+
+        if (!identifier || !password) {
             const response = NextResponse.json(
-                { error: 'Email and password are required' },
+                { error: 'Email/Username and password are required' },
                 { status: 400 }
             );
             return addCorsHeaders(response, req);
         }
 
-        const customer = await db.customer.findUnique({
-            where: { email },
+        const customer = await db.customer.findFirst({
+            where: {
+                OR: [
+                    { email: identifier },
+                    { name: identifier },
+                    { user_id: identifier }
+                ]
+            },
             include: {
                 level: true, // Include level info
             },

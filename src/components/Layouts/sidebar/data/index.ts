@@ -34,6 +34,12 @@ export const NAV_DATA = [
             title: "Order Plan",
             url: "/trading/order-plan",
           },
+        ],
+      },
+      {
+        title: "Transaction",
+        icon: Icons.Table,
+        items: [
           {
             title: "Deposit",
             url: "/trading/deposit",
@@ -42,7 +48,6 @@ export const NAV_DATA = [
             title: "Withdrawal",
             url: "/trading/withdrawal",
           },
-
         ],
       },
       {

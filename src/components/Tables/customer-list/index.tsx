@@ -13,9 +13,18 @@ import { PencilSquareIcon } from "@/assets/icons";
 import { PreviewIcon } from "../icons";
 
 import { CustomerDeleteButton } from "./delete-button";
+import { Pagination } from "@/components/Pagination";
 
-export async function CustomerTable({ className }: { className?: string }) {
-    const data = await getCustomers();
+interface CustomerTableProps {
+    className?: string;
+    page?: number;
+    pageSize?: number;
+}
+
+export async function CustomerTable({ className, page = 1, pageSize = 10 }: CustomerTableProps) {
+    const { customers: data, total } = await getCustomers(page, pageSize);
+    const totalPages = Math.ceil(total / pageSize);
+    const startIndex = (page - 1) * pageSize;
 
     return (
         <div
@@ -24,13 +33,19 @@ export async function CustomerTable({ className }: { className?: string }) {
                 className,
             )}
         >
-            <h2 className="mb-4 text-body-2xlg font-bold text-dark dark:text-white">
-                Customer List
-            </h2>
+            <div className="flex items-center justify-between mb-4">
+                <h2 className="text-body-2xlg font-bold text-dark dark:text-white">
+                    Customer List
+                </h2>
+                <p className="text-sm text-gray-500 dark:text-gray-400">
+                    Showing {Math.min(startIndex + 1, total)}-{Math.min(startIndex + pageSize, total)} of {total} customers
+                </p>
+            </div>
 
             <Table>
                 <TableHeader>
                     <TableRow className="border-none uppercase [&>th]:text-center">
+                        <TableHead className="w-[60px] !text-center">#</TableHead>
                         <TableHead className="min-w-[100px] !text-left">User ID</TableHead>
                         <TableHead className="min-w-[120px] !text-left">Name</TableHead>
                         <TableHead className="!text-left">Email</TableHead>
@@ -44,11 +59,15 @@ export async function CustomerTable({ className }: { className?: string }) {
                 </TableHeader>
 
                 <TableBody>
-                    {data.map((customer: any) => (
+                    {data.map((customer: any, index: number) => (
                         <TableRow
                             className="text-center text-base font-medium text-dark dark:text-white"
                             key={customer.id}
                         >
+                            <TableCell className="!text-center font-semibold text-gray-500 dark:text-gray-400">
+                                {startIndex + index + 1}
+                            </TableCell>
+
                             <TableCell className="!text-left">
                                 {customer.id}
                             </TableCell>
@@ -111,8 +130,21 @@ export async function CustomerTable({ className }: { className?: string }) {
                             </TableCell>
                         </TableRow>
                     ))}
+                    {data.length === 0 && (
+                        <TableRow>
+                            <TableCell colSpan={10} className="text-center py-8">
+                                No customers found.
+                            </TableCell>
+                        </TableRow>
+                    )}
                 </TableBody>
             </Table>
+
+            <Pagination
+                currentPage={page}
+                totalPages={totalPages}
+                baseUrl="/customers"
+            />
         </div>
     );
 }

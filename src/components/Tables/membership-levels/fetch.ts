@@ -53,8 +53,8 @@ export async function getMembershipLevels(): Promise<MembershipLevel[]> {
             image: level.icon || "/images/vip-badges/vip-silver.png", // Fallback image
             upgradePrice: level.upgradePrice.toFixed(2),
             orderInfo: {
-                commissionRate: `${(level.commissionRate * 100).toFixed(1)}%`, // e.g. 0.5%
-                ratio: `${(level.minBalanceRatio * 100).toFixed(0)}% - ${(level.maxBalanceRatio * 100).toFixed(0)}%`, // e.g. 60% - 100%
+                commissionRate: `${(level.commissionRate).toFixed(1)}%`, // e.g. 0.5%
+                ratio: `${(level.minBalanceRatio).toFixed(0)}% - ${(level.maxBalanceRatio).toFixed(0)}%`, // e.g. 60% - 100%
                 quantityRange: `${level.minProductCount} - ${level.maxProductCount}`,
             },
             constraints: {
@@ -67,17 +67,17 @@ export async function getMembershipLevels(): Promise<MembershipLevel[]> {
                 withdrawableStatus: `Withdrawable (Count: ${level.dailyWithdrawalCount})`,
             },
             fees: {
-                trc: level.trcWithdrawalFee > 0 ? `${level.trcWithdrawalFee.toFixed(2)}` : `${(level.trcWithdrawalRate * 100).toFixed(2)}%`,
-                erc: level.ercWithdrawalFee > 0 ? `${level.ercWithdrawalFee.toFixed(2)}` : `${(level.ercWithdrawalRate * 100).toFixed(2)}%`,
-                card: level.bankWithdrawalFee > 0 ? `${level.bankWithdrawalFee.toFixed(2)}` : `${(level.bankWithdrawalRate * 100).toFixed(2)}%`,
+                trc: level.trcWithdrawalFee > 0 ? `${level.trcWithdrawalFee.toFixed(2)}` : `${(level.trcWithdrawalRate).toFixed(2)}%`,
+                erc: level.ercWithdrawalFee > 0 ? `${level.ercWithdrawalFee.toFixed(2)}` : `${(level.ercWithdrawalRate).toFixed(2)}%`,
+                card: level.bankWithdrawalFee > 0 ? `${level.bankWithdrawalFee.toFixed(2)}` : `${(level.bankWithdrawalRate).toFixed(2)}%`,
             },
             autoUpgrade: {
                 numberOfInvitees: level.autoUpgradeInviteCount,
             },
             rebateInfo: {
-                level1: `${(level.referralCommissionRateL1 * 100).toFixed(0)}%`,
-                level2: `${(level.referralCommissionRateL2 * 100).toFixed(0)}%`,
-                level3: `${(level.referralCommissionRateL3 * 100).toFixed(1)}%`,
+                level1: `${(level.referralCommissionRateL1).toFixed(0)}%`,
+                level2: `${(level.referralCommissionRateL2).toFixed(0)}%`,
+                level3: `${(level.referralCommissionRateL3).toFixed(1)}%`,
             },
             status: "Active",
         }));

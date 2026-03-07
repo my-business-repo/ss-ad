@@ -1,6 +1,7 @@
 "use client";
 
 import { logout } from "@/actions/auth-actions";
+import { useSession } from "next-auth/react";
 
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
@@ -16,6 +17,9 @@ export function Sidebar() {
   const pathname = usePathname();
   const { setIsOpen, isOpen, isMobile, toggleSidebar } = useSidebarContext();
   const [expandedItems, setExpandedItems] = useState<string[]>([]);
+  const { data: session } = useSession();
+
+  const userRole = (session?.user as any)?.role || "Admin";
 
   const toggleExpanded = (title: string) => {
     setExpandedItems((prev) => (prev.includes(title) ? [] : [title]));
@@ -28,9 +32,9 @@ export function Sidebar() {
 
   useEffect(() => {
     // Keep collapsible open, when it's subpage is active
-    NAV_DATA.some((section: any) => {
+    filteredNavData.some((section: any) => {
       return section.items.some((item: any) => {
-        return item.items.some((subItem: any) => {
+        return item.items?.some((subItem: any) => {
           if (subItem.url === pathname) {
             if (!expandedItems.includes(item.title)) {
               toggleExpanded(item.title);
@@ -43,6 +47,25 @@ export function Sidebar() {
       });
     });
   }, [pathname]);
+
+  const filteredNavData = NAV_DATA.map((section: any) => {
+    if (userRole?.toUpperCase() !== "MODERATOR") return section;
+
+    return {
+      ...section,
+      items: section.items
+        .filter((item: any) => item.title !== "Admin" && item.title !== "Product")
+        .map((item: any) => {
+          if (item.title === "Dashboard") {
+            return {
+              ...item,
+              items: item.items.filter((subItem: any) => subItem.title !== "Membership Levels" && subItem.title !== "Home"),
+            };
+          }
+          return item;
+        }),
+    };
+  });
 
   return (
     <>
@@ -89,7 +112,7 @@ export function Sidebar() {
 
           {/* Navigation */}
           <div className="custom-scrollbar mt-6 flex-1 overflow-y-auto pr-3 min-[850px]:mt-10">
-            {NAV_DATA.map((section: any) => (
+            {filteredNavData.map((section: any) => (
               <div key={section.label} className="mb-6">
                 <h2 className="mb-5 text-sm font-medium text-dark-4 dark:text-dark-6">
                   {section.label}

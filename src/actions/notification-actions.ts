@@ -73,3 +73,18 @@ export async function toggleNotificationReadStatus(id: number, isRead: boolean) 
         return { success: false };
     }
 }
+
+export async function deleteNotification(id: number) {
+    try {
+        await db.notification.delete({
+            where: { id }
+        });
+        revalidatePath("/");
+        revalidatePath("/notifications");
+        return { success: true };
+    } catch (error) {
+        console.error("Error deleting notification:", error);
+        return { success: false };
+    }
+}
+
