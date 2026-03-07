@@ -105,17 +105,20 @@ export async function POST(req: Request) {
             where: { status: 'active' },
         });
 
-        if (products.length < 20) {
+        if (products.length === 0) {
             const response = NextResponse.json(
-                { error: `Not enough active products available. Need 20, found ${products.length}` },
+                { error: `No active products available.` },
                 { status: 400 }
             );
             return addCorsHeaders(response, req);
         }
 
-        // 5. Shuffle products and select 20 random ones
-        const shuffledProducts = shuffleArray(products);
-        const selectedProducts = shuffledProducts.slice(0, 20);
+        // 5. Select 40 random products (allowing duplicates to support small catalogs)
+        const selectedProducts = [];
+        for (let i = 0; i < 40; i++) {
+            const randomIndex = Math.floor(Math.random() * products.length);
+            selectedProducts.push(products[randomIndex]);
+        }
 
         // 6. Generate unique plan_id
         let planId = generatePlanId();
@@ -131,7 +134,7 @@ export async function POST(req: Request) {
 
         // 7. Pre-generate all unique order IDs (outside transaction to avoid timeout)
         const orderIds: string[] = [];
-        for (let i = 0; i < 20; i++) {
+        for (let i = 0; i < 40; i++) {
             let orderId = generateOrderId(i + 1);
             let isOrderIdUnique = false;
             while (!isOrderIdUnique) {
@@ -170,7 +173,7 @@ export async function POST(req: Request) {
                 data: {
                     plan_id: planId,
                     customerId: customerId,
-                    totalOrders: 20,
+                    totalOrders: 40,
                     completedOrders: 0,
                     status: 'ACTIVE',
                     startedAt: new Date(),

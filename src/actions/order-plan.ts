@@ -263,3 +263,145 @@ export async function deleteOrder(orderId: number, planId: number) {
         return { success: false, error: "Failed to delete order" };
     }
 }
+
+export async function applySavedPlanToOrderPlan(planId: number, savedPlanId: number) {
+    try {
+        const savedPlan = await db.savedOrderPlan.findUnique({
+            where: { id: savedPlanId },
+            include: {
+                items: {
+                    include: { product: true },
+                    orderBy: { sequence: "asc" }
+                }
+            }
+        });
+
+        if (!savedPlan || savedPlan.items.length === 0) {
+            return { success: false, error: "Saved plan not found or is empty." };
+        }
+
+        const activePlan = await db.orderPlan.findUnique({
+            where: { id: planId },
+            include: {
+                orders: {
+                    where: { status: { in: ['NOT_START', 'PENDING'] } }
+                }
+            }
+        });
+
+        if (!activePlan) {
+            return { success: false, error: "Active plan not found." };
+        }
+
+        // 1. Determine the starting order number for the new sequence based on completed orders
+        const lastCompletedOrder = await db.order.findFirst({
+            where: { orderPlanId: planId, status: { notIn: ['NOT_START', 'PENDING'] } },
+            orderBy: { orderNumber: 'desc' }
+        });
+
+        let nextSequenceNumber = (lastCompletedOrder?.orderNumber ?? 0) + 1;
+        let nextTotalOrders = activePlan.completedOrders;
+
+        // 2. Generate new orders data in memory
+        const newOrdersData: any[] = [];
+        const generatedIds = new Set<string>();
+
+        for (let i = 0; i < savedPlan.items.length; i++) {
+            const item = savedPlan.items[i];
+            const product = item.product;
+
+            let orderId = generateOrderId(nextSequenceNumber);
+            // Ensure no duplicate IDs within the same batch
+            while (generatedIds.has(orderId)) {
+                orderId = generateOrderId(nextSequenceNumber);
+            }
+            generatedIds.add(orderId);
+
+            newOrdersData.push({
+                order_id: orderId,
+                orderPlanId: planId,
+                productId: product.id,
+                orderNumber: nextSequenceNumber,
+                amount: product.price,
+                commission: product.commission,
+                status: 'NOT_START',
+            });
+
+            nextSequenceNumber++;
+            nextTotalOrders++;
+        }
+
+        // 3. Resolve any ID collisions with existing database records
+        let idsToCheck = Array.from(generatedIds);
+        let maxRetries = 10;
+        let retryCount = 0;
+
+        while (idsToCheck.length > 0 && retryCount < maxRetries) {
+            const existingOrders = await db.order.findMany({
+                where: { order_id: { in: idsToCheck } },
+                select: { order_id: true }
+            });
+
+            if (existingOrders.length === 0) break; // No collisions
+
+            const collidingIds = new Set(existingOrders.map(o => o.order_id));
+            idsToCheck = []; // Reset for next iteration
+
+            // Re-generate colliding IDs
+            for (let i = 0; i < newOrdersData.length; i++) {
+                if (collidingIds.has(newOrdersData[i].order_id)) {
+                    generatedIds.delete(newOrdersData[i].order_id);
+
+                    let newOrderId = generateOrderId(newOrdersData[i].orderNumber);
+                    while (generatedIds.has(newOrderId)) {
+                        newOrderId = generateOrderId(newOrdersData[i].orderNumber);
+                    }
+
+                    generatedIds.add(newOrderId);
+                    newOrdersData[i].order_id = newOrderId;
+                    idsToCheck.push(newOrderId);
+                }
+            }
+            retryCount++;
+        }
+
+        if (retryCount >= maxRetries) {
+            throw new Error("Failed to generate unique order IDs after multiple attempts.");
+        }
+
+        // 4. Perform the database updates in a fast transaction
+        await db.$transaction(async (tx) => {
+            // Delete old uncompleted orders
+            await tx.order.deleteMany({
+                where: {
+                    orderPlanId: planId,
+                    status: { in: ['NOT_START', 'PENDING'] }
+                }
+            });
+
+            // Insert all new orders at once
+            if (newOrdersData.length > 0) {
+                // @ts-ignore
+                await tx.order.createMany({
+                    data: newOrdersData
+                });
+            }
+
+            // Update the OrderPlan total orders
+            await tx.orderPlan.update({
+                where: { id: planId },
+                data: { totalOrders: nextTotalOrders }
+            });
+        }, {
+            maxWait: 5000,
+            timeout: 20000
+        });
+
+        revalidatePath("/trading/order-plan");
+        return { success: true };
+
+    } catch (error) {
+        console.error("Failed to apply saved plan:", error);
+        return { success: false, error: "Failed to apply saved order plan." };
+    }
+}

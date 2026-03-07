@@ -46,6 +46,20 @@ export const NAV_DATA = [
         ],
       },
       {
+        title: "Save Order Plan",
+        icon: Icons.Table,
+        items: [
+          {
+            title: "Save Order Plan List",
+            url: "/save-order-plan",
+          },
+          {
+            title: "Create New Save Order Plan",
+            url: "/save-order-plan/new",
+          }
+        ]
+      },
+      {
         title: "Admin",
         icon: Icons.Authentication, // Using Authentication icon as a temporary placeholder or reused
         items: [

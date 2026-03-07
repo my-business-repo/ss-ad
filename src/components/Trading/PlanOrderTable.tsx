@@ -17,10 +17,18 @@ import { EditOrderModal } from "./EditOrderModal";
 import { NewOrderModal } from "./NewOrderModal";
 import { deleteOrder } from "@/actions/order-plan";
 import { Modal } from "@/components/ui/modal";
+import { ApplyTemplateModal } from "./ApplyTemplateModal";
 
-export function PlanOrderTable({ orders, planId }: { orders: OrderPlanDetail['orders'], planId: number }) {
+type SavedPlanOption = {
+    id: number;
+    name: string | null;
+    _count: { items: number };
+};
+
+export function PlanOrderTable({ orders, planId, savedPlans }: { orders: OrderPlanDetail['orders'], planId: number, savedPlans: SavedPlanOption[] }) {
     const [editingOrder, setEditingOrder] = useState<typeof orders[0] | null>(null);
     const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
+    const [isApplyTemplateOpen, setIsApplyTemplateOpen] = useState(false);
     const [deletingOrder, setDeletingOrder] = useState<{ order: typeof orders[0], index: number } | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
 
@@ -49,15 +57,23 @@ export function PlanOrderTable({ orders, planId }: { orders: OrderPlanDetail['or
                     <h2 className="text-body-2xlg font-bold text-dark dark:text-white">
                         Orders
                     </h2>
-                    <button
-                        onClick={() => setIsNewOrderModalOpen(true)}
-                        className="inline-flex items-center justify-center gap-2.5 rounded-md bg-primary px-10 py-4 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
-                    >
-                        <span>
-                            <PlusIcon className="h-4 w-4 stroke-2" />
-                        </span>
-                        New Order
-                    </button>
+                    <div className="flex flex-wrap items-center gap-4">
+                        <button
+                            onClick={() => setIsApplyTemplateOpen(true)}
+                            className="inline-flex items-center justify-center rounded-md border border-primary px-6 py-4 text-center font-medium text-primary hover:bg-primary hover:text-white dark:hover:text-white"
+                        >
+                            Apply Template
+                        </button>
+                        <button
+                            onClick={() => setIsNewOrderModalOpen(true)}
+                            className="inline-flex items-center justify-center gap-2.5 rounded-md bg-primary px-10 py-4 text-center font-medium text-white hover:bg-opacity-90 lg:px-8 xl:px-10"
+                        >
+                            <span>
+                                <PlusIcon className="h-4 w-4 stroke-2" />
+                            </span>
+                            New Order
+                        </button>
+                    </div>
                 </div>
 
                 <Table>
@@ -190,6 +206,13 @@ export function PlanOrderTable({ orders, planId }: { orders: OrderPlanDetail['or
                 isOpen={isNewOrderModalOpen}
                 onClose={() => setIsNewOrderModalOpen(false)}
                 planId={planId}
+            />
+
+            <ApplyTemplateModal
+                isOpen={isApplyTemplateOpen}
+                onClose={() => setIsApplyTemplateOpen(false)}
+                planId={planId}
+                savedPlans={savedPlans}
             />
 
             {/* Delete Confirmation Modal */}

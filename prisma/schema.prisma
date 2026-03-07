@@ -39,6 +39,10 @@ model Customer {
   withdrawalAddresses WithdrawalAddress[]
   orderPlans          OrderPlan[]
   notifications       Notification[]
+
+  referredByCode String?    @db.VarChar(10)
+  referrer       Customer?  @relation("Referral", fields: [referredByCode], references: [referCode])
+  referrals      Customer[] @relation("Referral")
 }
 
 model Account {
@@ -89,33 +93,35 @@ model VerificationToken {
 }
 
 model Product {
-  id          Int      @id @default(autoincrement())
-  product_id  String   @unique @db.VarChar(8)
-  name        String
-  description String   @db.Text
-  price       Float
-  commission  Float
-  rating      Float    @default(0)
-  image       String?
-  status      String   @default("active")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  orders      Order[]
+  id             Int                  @id @default(autoincrement())
+  product_id     String               @unique @db.VarChar(8)
+  name           String
+  description    String               @db.Text
+  price          Float
+  commission     Float
+  rating         Float                @default(0)
+  image          String?
+  status         String               @default("active")
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  orders         Order[]
+  savedPlanItems SavedOrderPlanItem[]
 }
 
 model OrderPlan {
-  id              Int             @id @default(autoincrement())
-  plan_id         String          @unique @db.VarChar(12)
+  id              Int              @id @default(autoincrement())
+  plan_id         String           @unique @db.VarChar(12)
   customerId      Int
-  customer        Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
-  totalOrders     Int             @default(20)
-  completedOrders Int             @default(0)
-  status          OrderPlanStatus @default(ACTIVE)
-  startedAt       DateTime        @default(now())
+  customer        Customer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  totalOrders     Int              @default(40)
+  completedOrders Int              @default(0)
+  status          OrderPlanStatus  @default(ACTIVE)
+  startedAt       DateTime         @default(now())
   completedAt     DateTime?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
   orders          Order[]
+  savedPlans      SavedOrderPlan[]
 
   @@index([customerId])
 }
@@ -136,6 +142,32 @@ model Order {
   updatedAt   DateTime    @updatedAt
 
   @@index([orderPlanId])
+  @@index([productId])
+}
+
+model SavedOrderPlan {
+  id          Int                  @id @default(autoincrement())
+  name        String?
+  orderPlanId Int?
+  orderPlan   OrderPlan?           @relation(fields: [orderPlanId], references: [id], onDelete: SetNull)
+  items       SavedOrderPlanItem[]
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  @@index([orderPlanId])
+}
+
+model SavedOrderPlanItem {
+  id               Int            @id @default(autoincrement())
+  savedOrderPlanId Int
+  savedOrderPlan   SavedOrderPlan @relation(fields: [savedOrderPlanId], references: [id], onDelete: Cascade)
+  productId        Int
+  product          Product        @relation(fields: [productId], references: [id])
+  sequence         Int // 1, 2, 3...
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([savedOrderPlanId])
   @@index([productId])
 }
 
@@ -161,6 +193,8 @@ enum AdminRole {
 enum TransactionType {
   DEPOSIT
   WITHDRAWAL
+  COMMISSION
+  REFERRAL_COMMISSION
 }
 
 enum TransactionStatus {

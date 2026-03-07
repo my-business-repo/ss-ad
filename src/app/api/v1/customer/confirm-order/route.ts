@@ -138,6 +138,55 @@ export async function POST(req: Request) {
                 }
             });
 
+            // Handle Referral Commission
+            const customer = await tx.customer.findUnique({
+                where: { id: customerId },
+                include: {
+                    referrer: {
+                        include: {
+                            level: true,
+                            accounts: true
+                        }
+                    }
+                }
+            });
+
+            if (customer?.referrer && customer.referrer.accounts.length > 0) {
+                const referrer = customer.referrer;
+                const referrerAccount = referrer.accounts[0];
+
+                // Get the referral commission rate (fallback to 0 if not set)
+                const refRate = referrer.level?.referralCommissionRateL1 || 0;
+
+                if (refRate > 0) {
+                    const refBonus = (commission * refRate) / 100;
+
+                    // Add bonus to referrer
+                    await tx.account.update({
+                        where: { id: referrerAccount.id },
+                        data: {
+                            balance: { increment: refBonus },
+                            profit: { increment: refBonus }
+                        }
+                    });
+
+                    // Log the transaction
+                    const timestamp = Date.now().toString(36).toUpperCase();
+                    const random = Math.random().toString(36).substring(2, 4).toUpperCase();
+                    const txId = `REF${timestamp.slice(-5)}${random}`.substring(0, 12);
+
+                    await tx.transaction.create({
+                        data: {
+                            transaction_id: txId,
+                            accountId: referrerAccount.id,
+                            type: 'REFERRAL_COMMISSION',
+                            amount: refBonus,
+                            status: 'APPROVED',
+                        }
+                    });
+                }
+            }
+
             // Update Order
             const updatedOrder = await tx.order.update({
                 where: { id: order.id },

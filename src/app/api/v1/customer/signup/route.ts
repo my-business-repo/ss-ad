@@ -91,6 +91,7 @@ export async function POST(req: Request) {
                 fundPassword: hashedFundPassword,
                 phoneNumber,
                 referCode: newReferCode,
+                referredByCode: referCode ? referCode : null,
                 user_id: 'TEMP',
                 levelId: 1, // Default to VIP1
             },
