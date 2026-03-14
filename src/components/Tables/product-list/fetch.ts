@@ -14,15 +14,17 @@ export type ProductListItem = {
     image: string | null;
 };
 
-export async function getProducts(page: number = 1, pageSize: number = 10, search: string = ''): Promise<{ products: ProductListItem[], total: number }> {
+export async function getProducts(page: number = 1, pageSize: number = 10, search: string = '', status: string = ''): Promise<{ products: ProductListItem[], total: number }> {
     const skip = (page - 1) * pageSize;
 
-    const where = search ? {
-        OR: [
+    const where: any = {};
+    if (search) {
+        where.OR = [
             { name: { contains: search } },
             { product_id: { contains: search } },
-        ]
-    } : {};
+        ];
+    }
+    if (status) where.status = status;
 
     const [products, total] = await Promise.all([
         db.product.findMany({

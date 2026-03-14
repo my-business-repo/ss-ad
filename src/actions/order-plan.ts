@@ -14,6 +14,7 @@ export type OrderPlanListItem = {
     completedAt: Date | null;
     createdAt: Date;
     customer: {
+        id: number;
         name: string;
         email: string | null;
         user_id: string;
@@ -44,6 +45,7 @@ export async function getOrderPlans(page: number = 1, pageSize: number = 10, sea
             include: {
                 customer: {
                     select: {
+                        id: true,
                         name: true,
                         email: true,
                         user_id: true,
@@ -65,6 +67,7 @@ export async function getOrderPlans(page: number = 1, pageSize: number = 10, sea
             completedAt: plan.completedAt,
             createdAt: plan.createdAt,
             customer: {
+                id: plan.customer.id,
                 name: plan.customer.name,
                 email: plan.customer.email,
                 user_id: plan.customer.user_id,
@@ -96,6 +99,7 @@ export async function getOrderPlan(id: number): Promise<OrderPlanDetail | null> 
         include: {
             customer: {
                 select: {
+                    id: true,
                     name: true,
                     email: true,
                     user_id: true,
@@ -129,6 +133,7 @@ export async function getOrderPlan(id: number): Promise<OrderPlanDetail | null> 
         completedAt: plan.completedAt,
         createdAt: plan.createdAt,
         customer: {
+            id: plan.customer.id,
             name: plan.customer.name,
             email: plan.customer.email,
             user_id: plan.customer.user_id,

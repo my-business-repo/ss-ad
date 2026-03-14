@@ -14,15 +14,18 @@ import { PreviewIcon } from "../icons";
 import DeleteProductButton from "./delete-button";
 import StarRating from "@/components/StarRating";
 import { Pagination } from "@/components/Pagination";
+import { TableSearchBar } from "@/components/TableSearchBar";
 
 interface ProductTableProps {
     className?: string;
     page?: number;
     pageSize?: number;
+    search?: string;
+    status?: string;
 }
 
-export async function ProductTable({ className, page = 1, pageSize = 10 }: ProductTableProps) {
-    const { products: data, total } = await getProducts(page, pageSize);
+export async function ProductTable({ className, page = 1, pageSize = 10, search = '', status = '' }: ProductTableProps) {
+    const { products: data, total } = await getProducts(page, pageSize, search, status);
     const totalPages = Math.ceil(total / pageSize);
     const startIndex = (page - 1) * pageSize;
 
@@ -41,6 +44,20 @@ export async function ProductTable({ className, page = 1, pageSize = 10 }: Produ
                     Showing {startIndex + 1}-{Math.min(startIndex + pageSize, total)} of {total} products
                 </p>
             </div>
+
+            <TableSearchBar
+                placeholder="Search by name or product ID..."
+                filters={[
+                    {
+                        key: "status",
+                        label: "Status",
+                        options: [
+                            { label: "Active", value: "active" },
+                            { label: "Inactive", value: "inactive" },
+                        ],
+                    },
+                ]}
+            />
 
             <Table>
                 <TableHeader>

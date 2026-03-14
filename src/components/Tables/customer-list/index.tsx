@@ -14,15 +14,18 @@ import { PreviewIcon } from "../icons";
 
 import { CustomerDeleteButton } from "./delete-button";
 import { Pagination } from "@/components/Pagination";
+import { TableSearchBar } from "@/components/TableSearchBar";
 
 interface CustomerTableProps {
     className?: string;
     page?: number;
     pageSize?: number;
+    search?: string;
+    tradeable?: string;
 }
 
-export async function CustomerTable({ className, page = 1, pageSize = 10 }: CustomerTableProps) {
-    const { customers: data, total } = await getCustomers(page, pageSize);
+export async function CustomerTable({ className, page = 1, pageSize = 10, search = '', tradeable = '' }: CustomerTableProps) {
+    const { customers: data, total } = await getCustomers(page, pageSize, search, tradeable);
     const totalPages = Math.ceil(total / pageSize);
     const startIndex = (page - 1) * pageSize;
 
@@ -42,6 +45,20 @@ export async function CustomerTable({ className, page = 1, pageSize = 10 }: Cust
                 </p>
             </div>
 
+            <TableSearchBar
+                placeholder="Search by name, email or user ID..."
+                filters={[
+                    {
+                        key: "tradeable",
+                        label: "Tradeable",
+                        options: [
+                            { label: "Yes", value: "true" },
+                            { label: "No", value: "false" },
+                        ],
+                    },
+                ]}
+            />
+
             <Table>
                 <TableHeader>
                     <TableRow className="border-none uppercase [&>th]:text-center">
@@ -53,6 +70,8 @@ export async function CustomerTable({ className, page = 1, pageSize = 10 }: Cust
                         <TableHead>Balance</TableHead>
                         <TableHead>Profit</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead className="!text-center">Tradeable</TableHead>
+                        <TableHead className="!text-center">Referrals</TableHead>
                         <TableHead className="!text-right">Joined</TableHead>
                         <TableHead className="!text-right">Actions</TableHead>
                     </TableRow>
@@ -110,8 +129,34 @@ export async function CustomerTable({ className, page = 1, pageSize = 10 }: Cust
                                 </span>
                             </TableCell>
 
+                            <TableCell className="!text-center">
+                                <span
+                                    className={cn(
+                                        "inline-flex rounded-full px-3 py-1 text-sm font-medium",
+                                        customer.tradeable
+                                            ? "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-500"
+                                            : "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-500"
+                                    )}
+                                >
+                                    {customer.tradeable ? "Yes" : "No"}
+                                </span>
+                            </TableCell>
+
                             <TableCell className="!text-right">
                                 {customer.lastLogin}
+                            </TableCell>
+
+                            <TableCell className="!text-center">
+                                <span className="inline-flex items-center gap-1 font-medium">
+                                    {customer.referralCount >= 1 && (
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                                        </svg>
+                                    )}
+                                    <span className={customer.referralCount >= 1 ? "text-green-600" : ""}>
+                                        {customer.referralCount}
+                                    </span>
+                                </span>
                             </TableCell>
 
                             <TableCell className="!text-right">

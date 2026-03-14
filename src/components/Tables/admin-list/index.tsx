@@ -9,9 +9,10 @@ import {
 import { cn } from "@/lib/utils";
 import { getAdmins } from "./fetch";
 import { AdminRowActions } from "./admin-row-actions";
+import { TableSearchBar } from "@/components/TableSearchBar";
 
-export async function AdminTable({ className }: { className?: string }) {
-    const data = await getAdmins();
+export async function AdminTable({ className, search = '', role = '' }: { className?: string; search?: string; role?: string }) {
+    const data = await getAdmins(search, role);
 
     return (
         <div
@@ -23,6 +24,20 @@ export async function AdminTable({ className }: { className?: string }) {
             <h2 className="mb-4 text-body-2xlg font-bold text-dark dark:text-white">
                 Admin List
             </h2>
+
+            <TableSearchBar
+                placeholder="Search by name, email or user ID..."
+                filters={[
+                    {
+                        key: "role",
+                        label: "Role",
+                        options: [
+                            { label: "Super Admin", value: "SUPER_ADMIN" },
+                            { label: "Admin", value: "ADMIN" },
+                        ],
+                    },
+                ]}
+            />
 
             <Table>
                 <TableHeader>

@@ -11,7 +11,15 @@ export const metadata = {
 // Force dynamic rendering to always fetch fresh data
 export const dynamic = 'force-dynamic';
 
-export default function AdminListPage() {
+export default async function AdminListPage({
+    searchParams
+}: {
+    searchParams: Promise<{ search?: string; role?: string }>
+}) {
+    const params = await searchParams;
+    const search = params.search ?? '';
+    const role = params.role ?? '';
+
     return (
         <>
             <Breadcrumb pageName="Admin List" />
@@ -23,7 +31,7 @@ export default function AdminListPage() {
                     <CreateAdminForm />
                 </div>
                 <Suspense fallback={<div>Loading admins...</div>}>
-                    <AdminTable />
+                    <AdminTable search={search} role={role} />
                 </Suspense>
             </div>
         </>

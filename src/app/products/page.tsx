@@ -7,17 +7,19 @@ export const dynamic = 'force-dynamic';
 export default async function ProductListPage({
     searchParams
 }: {
-    searchParams: Promise<{ page?: string }>
+    searchParams: Promise<{ page?: string; search?: string; status?: string }>
 }) {
     const params = await searchParams;
     const page = params.page ? parseInt(params.page) : 1;
+    const search = params.search ?? '';
+    const status = params.status ?? '';
 
     return (
         <>
             <Breadcrumb pageName="Product List" />
 
             <div className="flex flex-col gap-10">
-                <ProductTable page={page} pageSize={10} />
+                <ProductTable page={page} pageSize={10} search={search} status={status} />
             </div>
         </>
     );

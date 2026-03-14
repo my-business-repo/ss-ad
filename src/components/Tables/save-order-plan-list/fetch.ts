@@ -1,11 +1,13 @@
 import { db } from "@/lib/db";
 
-export async function getSaveOrderPlans(page: number = 1, pageSize: number = 10) {
+export async function getSaveOrderPlans(page: number = 1, pageSize: number = 10, search: string = '') {
     try {
         const skip = (page - 1) * pageSize;
+        const where = search ? { name: { contains: search } } : {};
 
         const [plans, total] = await Promise.all([
             db.savedOrderPlan.findMany({
+                where,
                 skip,
                 take: pageSize,
                 orderBy: { createdAt: "desc" },
@@ -15,7 +17,7 @@ export async function getSaveOrderPlans(page: number = 1, pageSize: number = 10)
                     },
                 },
             }),
-            db.savedOrderPlan.count(),
+            db.savedOrderPlan.count({ where }),
         ]);
 
         return {

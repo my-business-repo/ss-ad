@@ -6,21 +6,31 @@ import { revalidatePath } from "next/cache";
 /**
  * Fetch all withdrawal transactions
  */
-export async function getWithdrawals() {
+export async function getWithdrawals(search: string = '', status: string = '') {
+    const where: any = { type: 'WITHDRAWAL' };
+
+    if (status) where.status = status;
+
+    if (search) {
+        where.account = {
+            customer: {
+                OR: [
+                    { name: { contains: search } },
+                    { email: { contains: search } },
+                    { user_id: { contains: search } },
+                ]
+            }
+        };
+    }
+
     const withdrawals = await db.transaction.findMany({
-        where: {
-            type: 'WITHDRAWAL'
-        },
+        where,
         include: {
             account: {
-                include: {
-                    customer: true
-                }
+                include: { customer: true }
             }
         },
-        orderBy: {
-            createdAt: 'desc'
-        }
+        orderBy: { createdAt: 'desc' }
     });
 
     return withdrawals;

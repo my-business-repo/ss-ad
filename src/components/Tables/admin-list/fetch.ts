@@ -10,11 +10,20 @@ export type AdminUser = {
     createdAt: Date;
 };
 
-export async function getAdmins(): Promise<AdminUser[]> {
+export async function getAdmins(search: string = '', role: string = ''): Promise<AdminUser[]> {
+    const where: any = {};
+    if (search) {
+        where.OR = [
+            { name: { contains: search } },
+            { email: { contains: search } },
+            { user_id: { contains: search } },
+        ];
+    }
+    if (role) where.role = role;
+
     const admins = await db.admin.findMany({
-        orderBy: {
-            createdAt: "desc",
-        },
+        where,
+        orderBy: { createdAt: "desc" },
         select: {
             id: true,
             name: true,

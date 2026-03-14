@@ -1,5 +1,5 @@
-
 import React from 'react';
+import { TradeableToggle } from './tradeable-toggle';
 
 interface GeneralTabProps {
     customer: any;
@@ -74,6 +74,20 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ customer, totalBalance, 
                                 </label>
                                 <div className="text-dark dark:text-white">
                                     {customer.createdAt.toLocaleDateString()}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mb-5.5 flex flex-col gap-5.5 sm:flex-row">
+                            <div className="w-full sm:w-1/2">
+                                <label className="mb-3 block text-sm font-medium text-dark dark:text-white">
+                                    Tradeable
+                                </label>
+                                <div>
+                                    <TradeableToggle
+                                        customerId={customer.user_id}
+                                        initialTradeable={customer.tradeable}
+                                    />
                                 </div>
                             </div>
                         </div>

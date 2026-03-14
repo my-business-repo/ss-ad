@@ -6,24 +6,32 @@ import { revalidatePath } from "next/cache";
 /**
  * Fetch all deposit transactions
  */
-export async function getDeposits() {
+export async function getDeposits(search: string = '', status: string = '') {
+    const where: any = { type: 'DEPOSIT' };
+
+    if (status) where.status = status;
+
+    if (search) {
+        where.account = {
+            customer: {
+                OR: [
+                    { name: { contains: search } },
+                    { email: { contains: search } },
+                    { user_id: { contains: search } },
+                ]
+            }
+        };
+    }
+
     const deposits = await db.transaction.findMany({
-        where: {
-            type: 'DEPOSIT'
-        },
+        where,
         include: {
             account: {
-                include: {
-                    customer: true
-                }
+                include: { customer: true }
             }
         },
-        orderBy: {
-            createdAt: 'desc'
-        }
+        orderBy: { createdAt: 'desc' }
     });
-
-    console.log(deposits);
 
     return deposits;
 }

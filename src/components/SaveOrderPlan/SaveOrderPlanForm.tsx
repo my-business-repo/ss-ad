@@ -1,8 +1,21 @@
 "use client";
 
 import { createSaveOrderPlan } from "@/actions/save-order-plan";
-import { useActionState, useState } from "react";
-import Image from "next/image";
+import { useActionState, useState, useRef, useEffect } from "react";
+import Select, { type SingleValue } from "react-select";
+
+// Detect and react to dark mode class changes on <html>
+function useIsDark() {
+    const [isDark, setIsDark] = useState(false);
+    useEffect(() => {
+        const check = () => setIsDark(document.documentElement.classList.contains("dark"));
+        check();
+        const observer = new MutationObserver(check);
+        observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+        return () => observer.disconnect();
+    }, []);
+    return isDark;
+}
 
 type Product = {
     id: number;
@@ -22,24 +35,169 @@ type Props = {
     } | null;
 };
 
-const initialState = {
-    message: "",
+type ProductOption = {
+    value: string;
+    label: string;
+    product: Product;
 };
 
-export default function SaveOrderPlanForm({ products, plan }: Props) {
-    // If we have a plan, the action should be update, otherwise create.
-    // For simplicity, we can pass the plan ID if it exists and let the action handle it.
-    // However, server actions in next.js can be bound, but we'll use a hidden input for `planId` instead.
-    const [state, formAction, isPending] = useActionState(createSaveOrderPlan, initialState);
+const initialState = { message: "" };
 
-    // Array to hold the selected products for the sequence.
-    // If editing, map the sorted items back to their full product objects.
+// Format each dropdown option: image + name + ID + price + commission
+function formatOptionLabel(option: ProductOption) {
+    const { product } = option;
+    return (
+        <div className="flex items-center gap-3 py-0.5">
+            {product.image ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                    src={product.image}
+                    alt={product.name}
+                    className="h-8 w-8 rounded object-cover shrink-0"
+                />
+            ) : (
+                <div className="h-8 w-8 rounded bg-gray-200 dark:bg-dark-3 shrink-0 flex items-center justify-center text-gray-400 text-xs">
+                    ?
+                </div>
+            )}
+            <div className="min-w-0">
+                <p className="text-sm font-medium text-dark dark:text-white truncate">{product.name}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-400 font-mono">
+                    {product.product_id} · ${product.price} · {product.commission}% comm.
+                </p>
+            </div>
+        </div>
+    );
+}
+
+// react-select style overrides — dark mode aware
+function buildSelectStyles(isDark: boolean) {
+    const bg = isDark ? "#24303f" : "#ffffff";
+    const bgHover = isDark ? "#313d4a" : "#f1f5f9";
+    const bgSelected = isDark ? "rgba(60,80,224,0.25)" : "rgba(60,80,224,0.1)";
+    const border = isDark ? "#313d4a" : "#e2e8f0";
+    const text = isDark ? "#ffffff" : "#1a1a2e";
+    return {
+        control: (base: any, state: any) => ({
+            ...base,
+            backgroundColor: isDark ? "#1c2434" : "transparent",
+            borderColor: state.isFocused ? "#3c50e0" : border,
+            boxShadow: "none",
+            "&:hover": { borderColor: "#3c50e0" },
+            borderRadius: "6px",
+            minHeight: "40px",
+            color: text,
+        }),
+        menu: (base: any) => ({
+            ...base,
+            backgroundColor: bg,
+            border: `1px solid ${border}`,
+            zIndex: 9999,
+            borderRadius: "7px",
+            overflow: "hidden",
+        }),
+        option: (base: any, state: any) => ({
+            ...base,
+            backgroundColor: state.isSelected
+                ? bgSelected
+                : state.isFocused
+                    ? bgHover
+                    : "transparent",
+            color: text,
+            cursor: "pointer",
+        }),
+        singleValue: (base: any) => ({ ...base, color: text }),
+        input: (base: any) => ({ ...base, color: text }),
+        placeholder: (base: any) => ({ ...base, color: isDark ? "#6b7280" : "#9ca3af" }),
+        clearIndicator: (base: any) => ({ ...base, color: isDark ? "#9ca3af" : "#6b7280" }),
+        dropdownIndicator: (base: any) => ({ ...base, color: isDark ? "#9ca3af" : "#6b7280" }),
+        indicatorSeparator: (base: any) => ({ ...base, backgroundColor: border }),
+        menuList: (base: any) => ({ ...base, backgroundColor: bg }),
+    };
+}
+
+// Shared product slot row UI
+function ProductSlot({
+    index,
+    selectedProduct,
+    options,
+    onChange,
+    onRemove,
+    isNew,
+    slotRef,
+    isDark,
+}: {
+    index: number;
+    selectedProduct: Product | null;
+    options: ProductOption[];
+    onChange: (index: number, productId: string) => void;
+    onRemove: (index: number) => void;
+    isNew?: boolean;
+    slotRef?: React.Ref<HTMLDivElement>;
+    isDark: boolean;
+}) {
+    const selectedOption = options.find(o => o.product.id === selectedProduct?.id) ?? null;
+    const styles = buildSelectStyles(isDark);
+
+    return (
+        <div
+            ref={slotRef}
+            className={`flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 rounded-[7px] ${isNew
+                    ? "border-2 border-dashed border-primary/50 bg-primary/5 dark:bg-primary/10"
+                    : "border border-stroke dark:border-dark-3"
+                }`}
+        >
+            <span className={`font-semibold w-8 shrink-0 ${isNew ? "text-primary" : "text-dark dark:text-white"}`}>
+                #{index + 1}
+            </span>
+
+            <div className="flex-grow w-full">
+                <Select
+                    options={options}
+                    value={selectedOption}
+                    onChange={(opt: SingleValue<ProductOption>) =>
+                        onChange(index, opt ? opt.value : "")
+                    }
+                    formatOptionLabel={formatOptionLabel}
+                    placeholder="Search by name or product ID..."
+                    isClearable
+                    styles={styles}
+                    classNamePrefix="rs"
+                />
+            </div>
+
+            <button
+                type="button"
+                onClick={() => onRemove(index)}
+                className="text-red-500 hover:text-red-700 shrink-0 text-sm transition"
+            >
+                Remove
+            </button>
+        </div>
+    );
+}
+
+export default function SaveOrderPlanForm({ products, plan }: Props) {
+    const [state, formAction, isPending] = useActionState(createSaveOrderPlan, initialState);
+    const newSlotRef = useRef<HTMLDivElement>(null);
+    const isDark = useIsDark();
+
     const [selectedProducts, setSelectedProducts] = useState<(Product | null)[]>(
         plan ? plan.items.sort((a, b) => a.sequence - b.sequence).map(item => item.product) : []
     );
 
+    // Build react-select options list
+    const options: ProductOption[] = products.map(p => ({
+        value: p.id.toString(),
+        label: `${p.name} ${p.product_id}`,
+        product: p,
+    }));
+
     const addProductSlot = () => {
         setSelectedProducts([...selectedProducts, null]);
+        setTimeout(() => {
+            newSlotRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        }, 50);
     };
 
     const removeProductSlot = (index: number) => {
@@ -55,7 +213,6 @@ export default function SaveOrderPlanForm({ products, plan }: Props) {
         setSelectedProducts(updated);
     };
 
-    // Calculate the array of IDs to submit. Filter out any null slots.
     const productIdsToSubmit = selectedProducts
         .filter((p): p is Product => p !== null)
         .map(p => p.id);
@@ -70,6 +227,7 @@ export default function SaveOrderPlanForm({ products, plan }: Props) {
 
             <form action={formAction} className="p-6.5">
                 {plan && <input type="hidden" name="planId" value={plan.id} />}
+
                 <div className="mb-4.5">
                     <label className="mb-3 block text-body-sm font-medium text-dark dark:text-white">
                         Plan Name <span className="text-red">*</span>
@@ -84,7 +242,6 @@ export default function SaveOrderPlanForm({ products, plan }: Props) {
                     />
                 </div>
 
-                {/* Hidden input to pass product IDs as JSON payload */}
                 <input type="hidden" name="products" value={JSON.stringify(productIdsToSubmit)} />
 
                 <div className="mb-6">
@@ -102,40 +259,44 @@ export default function SaveOrderPlanForm({ products, plan }: Props) {
                     </div>
 
                     {selectedProducts.length === 0 ? (
-                        <p className="text-sm text-gray-500 mb-4">No products added. Click "+ Add Product Slot" to begin building the plan.</p>
+                        <p className="text-sm text-gray-500 mb-4">
+                            No products added. Click &quot;+ Add Product Slot&quot; to begin building the plan.
+                        </p>
                     ) : (
                         <div className="flex flex-col gap-3">
-                            {selectedProducts.map((selectedProduct, index) => (
-                                <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center gap-4 p-4 border border-stroke dark:border-dark-3 rounded-[7px]">
-                                    <span className="font-semibold text-dark dark:text-white w-8 shrink-0">
-                                        #{index + 1}
-                                    </span>
+                            {/* New empty slots at the top */}
+                            {selectedProducts
+                                .map((p, i) => ({ p, i }))
+                                .filter(({ p }) => p === null)
+                                .map(({ i: index }) => (
+                                    <ProductSlot
+                                        key={`new-${index}`}
+                                        index={index}
+                                        selectedProduct={null}
+                                        options={options}
+                                        onChange={handleProductSelect}
+                                        onRemove={removeProductSlot}
+                                        isNew
+                                        slotRef={newSlotRef}
+                                        isDark={isDark}
+                                    />
+                                ))}
 
-                                    <div className="flex-grow w-full z-20 bg-transparent dark:bg-dark-2">
-                                        <select
-                                            className="w-full rounded border border-stroke bg-transparent px-4 py-2 outline-none transition focus:border-primary active:border-primary dark:border-dark-3 dark:bg-dark-2 dark:text-white"
-                                            value={selectedProduct?.id.toString() || ""}
-                                            onChange={(e) => handleProductSelect(index, e.target.value)}
-                                            required
-                                        >
-                                            <option value="" disabled>Select a product...</option>
-                                            {products.map((p) => (
-                                                <option key={p.id} value={p.id}>
-                                                    {p.name} (ID: {p.product_id}) - ${p.price} Let '{p.commission}%'
-                                                </option>
-                                            ))}
-                                        </select>
-                                    </div>
-
-                                    <button
-                                        type="button"
-                                        onClick={() => removeProductSlot(index)}
-                                        className="text-red-500 hover:text-red-700 shrink-0"
-                                    >
-                                        Remove
-                                    </button>
-                                </div>
-                            ))}
+                            {/* Existing filled slots in order */}
+                            {selectedProducts
+                                .map((p, i) => ({ p, i }))
+                                .filter(({ p }) => p !== null)
+                                .map(({ p: selectedProduct, i: index }) => (
+                                    <ProductSlot
+                                        key={index}
+                                        index={index}
+                                        selectedProduct={selectedProduct}
+                                        options={options}
+                                        onChange={handleProductSelect}
+                                        onRemove={removeProductSlot}
+                                        isDark={isDark}
+                                    />
+                                ))}
                         </div>
                     )}
                 </div>

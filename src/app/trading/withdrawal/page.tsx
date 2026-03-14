@@ -1,13 +1,20 @@
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import Link from "next/link";
 import { getWithdrawals } from "@/actions/withdrawalActions";
+import { TableSearchBar } from "@/components/TableSearchBar";
 
 // Force dynamic rendering to always fetch fresh data
 export const dynamic = 'force-dynamic';
 
-export default async function WithdrawalPage() {
-    // Fetch all withdrawal transactions using server action
-    const withdrawals = await getWithdrawals();
+export default async function WithdrawalPage({
+    searchParams
+}: {
+    searchParams: Promise<{ search?: string; status?: string }>
+}) {
+    const params = await searchParams;
+    const search = params.search ?? '';
+    const status = params.status ?? '';
+    const withdrawals = await getWithdrawals(search, status);
 
     return (
         <>
@@ -18,6 +25,21 @@ export default async function WithdrawalPage() {
                     <h2 className="mb-4 text-body-2xlg font-bold text-dark dark:text-white">
                         Withdrawal Transactions
                     </h2>
+
+                    <TableSearchBar
+                        placeholder="Search by customer name, email or user ID..."
+                        filters={[
+                            {
+                                key: "status",
+                                label: "Status",
+                                options: [
+                                    { label: "Pending", value: "PENDING" },
+                                    { label: "Approved", value: "APPROVED" },
+                                    { label: "Rejected", value: "REJECTED" },
+                                ],
+                            },
+                        ]}
+                    />
 
                     <div className="overflow-x-auto">
                         <table className="w-full table-auto">

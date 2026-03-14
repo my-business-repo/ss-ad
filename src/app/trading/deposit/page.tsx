@@ -1,13 +1,21 @@
 import Breadcrumb from "@/components/Breadcrumbs/Breadcrumb";
 import Link from "next/link";
 import { getDeposits } from "@/actions/depositActions";
+import { TableSearchBar } from "@/components/TableSearchBar";
+import { Suspense } from "react";
 
 // Force dynamic rendering to always fetch fresh data
 export const dynamic = 'force-dynamic';
 
-export default async function DepositPage() {
-    // Fetch all deposit transactions using server action
-    const deposits = await getDeposits();
+export default async function DepositPage({
+    searchParams
+}: {
+    searchParams: Promise<{ search?: string; status?: string }>
+}) {
+    const params = await searchParams;
+    const search = params.search ?? '';
+    const status = params.status ?? '';
+    const deposits = await getDeposits(search, status);
 
     return (
         <>
@@ -18,6 +26,21 @@ export default async function DepositPage() {
                     <h2 className="mb-4 text-body-2xlg font-bold text-dark dark:text-white">
                         Deposit Transactions
                     </h2>
+
+                    <TableSearchBar
+                        placeholder="Search by customer name, email or user ID..."
+                        filters={[
+                            {
+                                key: "status",
+                                label: "Status",
+                                options: [
+                                    { label: "Pending", value: "PENDING" },
+                                    { label: "Approved", value: "APPROVED" },
+                                    { label: "Rejected", value: "REJECTED" },
+                                ],
+                            },
+                        ]}
+                    />
 
                     <div className="overflow-x-auto">
                         <table className="w-full table-auto">

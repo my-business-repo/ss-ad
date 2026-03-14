@@ -13,15 +13,17 @@ import Link from "next/link";
 import { PencilSquareIcon, TrashIcon } from "@/assets/icons";
 import { PreviewIcon } from "../icons";
 import DeletePlanButton from "./DeleteButton";
+import { TableSearchBar } from "@/components/TableSearchBar";
 
 interface SaveOrderPlanTableProps {
     className?: string;
     page?: number;
     pageSize?: number;
+    search?: string;
 }
 
-export async function SaveOrderPlanTable({ className, page = 1, pageSize = 10 }: SaveOrderPlanTableProps) {
-    const { plans, total } = await getSaveOrderPlans(page, pageSize);
+export async function SaveOrderPlanTable({ className, page = 1, pageSize = 10, search = '' }: SaveOrderPlanTableProps) {
+    const { plans, total } = await getSaveOrderPlans(page, pageSize, search);
     const totalPages = Math.ceil(total / pageSize);
     const startIndex = (page - 1) * pageSize;
 
@@ -40,6 +42,8 @@ export async function SaveOrderPlanTable({ className, page = 1, pageSize = 10 }:
                     Showing {Math.min(startIndex + 1, total)}-{Math.min(startIndex + pageSize, total)} of {total} plans
                 </p>
             </div>
+
+            <TableSearchBar placeholder="Search by plan name..." />
 
             <Table>
                 <TableHeader>

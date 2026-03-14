@@ -39,6 +39,24 @@ export async function POST(req: Request) {
 
         const customerId = decoded.id;
 
+        // 1.5. Check customer is allowed to trade
+        const customer = await db.customer.findUnique({ where: { id: customerId } });
+        if (!customer) {
+            const response = NextResponse.json(
+                { error: 'Customer not found' },
+                { status: 404 }
+            );
+            return addCorsHeaders(response, req);
+        }
+
+        if (!customer.tradeable) {
+            const response = NextResponse.json(
+                { error: 'Trading is not enabled for your account. Please contact support.' },
+                { status: 403 }
+            );
+            return addCorsHeaders(response, req);
+        }
+
         // 2. Parse request body
         let body;
         try {

@@ -166,10 +166,25 @@ export async function POST(req: Request) {
             return addCorsHeaders(response, req);
         }
 
-        // TODO: Verify customer authentication (customer.id matches authenticated user)
-        // For now, we'll skip authentication
+        // 3. Verify customer authentication (customer.id matches authenticated user)
+        const authenticatedCustomerId = await authenticate(req);
+        if (!authenticatedCustomerId) {
+            const response = NextResponse.json(
+                { error: 'Unauthorized' },
+                { status: 401 }
+            );
+            return addCorsHeaders(response, req);
+        }
 
-        // 3. Upload proof image to Cloudflare R2
+        if (account.customerId !== Number(authenticatedCustomerId)) {
+            const response = NextResponse.json(
+                { error: 'Forbidden. Account does not belong to the authenticated user.' },
+                { status: 403 }
+            );
+            return addCorsHeaders(response, req);
+        }
+
+        // 4. Upload proof image to Cloudflare R2
         let proofImageUrl: string;
         try {
             proofImageUrl = await uploadFile(proofImage, 'transactions');
@@ -183,7 +198,7 @@ export async function POST(req: Request) {
             return addCorsHeaders(response, req);
         }
 
-        // 4. Generate unique transaction ID and create transaction
+        // 5. Generate unique transaction ID and create transaction
         const transactionId = generateRandomTransactionId();
 
         const transaction = await db.transaction.create({

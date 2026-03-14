@@ -37,13 +37,25 @@ export default async function OrderPlanDetailPage({
         }
     });
 
+    // Fetch the customer's current account balance for the balance simulation column
+    const customerAccount = await db.account.findFirst({
+        where: { customerId: plan.customer.id },
+        select: { balance: true }
+    });
+    const currentBalance = customerAccount?.balance ?? 0;
+
     return (
         <>
             <Breadcrumb pageName="Order Plan Details" />
 
             <div className="flex flex-col gap-10">
                 <PlanDetails plan={plan} />
-                <PlanOrderTable orders={plan.orders} planId={plan.id} savedPlans={savedPlans} />
+                <PlanOrderTable
+                    orders={plan.orders}
+                    planId={plan.id}
+                    savedPlans={savedPlans}
+                    currentBalance={currentBalance}
+                />
             </div>
         </>
     );

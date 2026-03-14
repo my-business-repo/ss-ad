@@ -25,7 +25,7 @@ type SavedPlanOption = {
     _count: { items: number };
 };
 
-export function PlanOrderTable({ orders, planId, savedPlans }: { orders: OrderPlanDetail['orders'], planId: number, savedPlans: SavedPlanOption[] }) {
+export function PlanOrderTable({ orders, planId, savedPlans, currentBalance }: { orders: OrderPlanDetail['orders'], planId: number, savedPlans: SavedPlanOption[], currentBalance: number }) {
     const [editingOrder, setEditingOrder] = useState<typeof orders[0] | null>(null);
     const [isNewOrderModalOpen, setIsNewOrderModalOpen] = useState(false);
     const [isApplyTemplateOpen, setIsApplyTemplateOpen] = useState(false);
@@ -49,6 +49,39 @@ export function PlanOrderTable({ orders, planId, savedPlans }: { orders: OrderPl
             setIsDeleting(false);
         }
     };
+
+    // Compute per-row estimated balance
+    // Walk through orders in sequence:
+    //   - COMPLETED orders already happened → add their commission to the running balance
+    //   - NOT_START / PENDING orders → check if simulated balance can cover price;
+    //     if yes → project balance after commission; if no → mark insufficient, skip (don't add)
+    type BalanceRow = { balance: number; insufficient: boolean; skipped: boolean };
+    const balanceRows: BalanceRow[] = [];
+    let runningBalance = currentBalance;
+
+    // First subtract commissions already earned from COMPLETED orders, since currentBalance
+    // already reflects them. So we reconstruct from scratch:
+    // Start from currentBalance and walk forward (orders are sorted by orderNumber asc).
+    // COMPLETED orders: their commission is already in the balance — we just track forward.
+    // NOT_START/PENDING: simulate.
+    for (const order of orders) {
+        const commission = (order.amount * order.commission) / 100;
+        if (order.status === 'COMPLETED') {
+            // Already happened — balance already reflects this. Just show what it is now.
+            // We don't double-add; instead we show the current running balance.
+            balanceRows.push({ balance: runningBalance, insufficient: false, skipped: false });
+            // Note: we do NOT increment here because currentBalance already includes all past earnings.
+        } else {
+            // Future order: simulate
+            if (runningBalance >= order.amount) {
+                runningBalance += commission; // balance increases by commission earned
+                balanceRows.push({ balance: runningBalance, insufficient: false, skipped: false });
+            } else {
+                balanceRows.push({ balance: runningBalance, insufficient: true, skipped: true });
+                // Do NOT change runningBalance — this step is skipped
+            }
+        }
+    }
 
     return (
         <>
@@ -86,14 +119,20 @@ export function PlanOrderTable({ orders, planId, savedPlans }: { orders: OrderPl
                             <TableHead className="!text-right">Amount</TableHead>
                             <TableHead className="!text-right">Commission</TableHead>
                             <TableHead>Status</TableHead>
+                            <TableHead className="!text-right">Est. Balance</TableHead>
                             <TableHead className="!text-right">Created At</TableHead>
                         </TableRow>
                     </TableHeader>
 
                     <TableBody>
-                        {orders.map((order, index) => (
+                        {orders.map((order, index) => {
+                            const row = balanceRows[index];
+                            return (
                             <TableRow
-                                className="text-center text-base font-medium text-dark dark:text-white"
+                                className={cn(
+                                    "text-center text-base font-medium text-dark dark:text-white",
+                                    row?.insufficient ? "opacity-70" : ""
+                                )}
                                 key={order.id}
                             >
                                 <TableCell className="!text-center font-semibold text-gray-500 dark:text-gray-400">
@@ -101,7 +140,7 @@ export function PlanOrderTable({ orders, planId, savedPlans }: { orders: OrderPl
                                 </TableCell>
 
                                 <TableCell className="!text-center">
-                                    {order.status === "NOT_START" && (
+                                    {order.status !== "COMPLETED" && (
                                         <div className="flex items-center justify-center gap-2">
                                             <button
                                                 className="text-primary hover:text-primary/80"
@@ -171,6 +210,33 @@ export function PlanOrderTable({ orders, planId, savedPlans }: { orders: OrderPl
                                     </span>
                                 </TableCell>
 
+                                {/* Estimated balance after this step */}
+                                <TableCell className="!text-right">
+                                    {row?.insufficient ? (
+                                        <span className="text-red-500 font-medium text-sm">
+                                            Insufficient
+                                            <br />
+                                            <span className="text-xs text-red-400 font-normal">
+                                                Need ${order.amount.toFixed(2)}
+                                            </span>
+                                        </span>
+                                    ) : (
+                                        <span className={cn(
+                                            "font-medium text-sm",
+                                            order.status === 'COMPLETED'
+                                                ? "text-gray-500 dark:text-gray-400"
+                                                : "text-green-600 dark:text-green-400"
+                                        )}>
+                                            ${row?.balance.toFixed(2)}
+                                            {order.status !== 'COMPLETED' && (
+                                                <span className="block text-xs text-green-500 font-normal">
+                                                    +${((order.amount * order.commission) / 100).toFixed(2)} commission
+                                                </span>
+                                            )}
+                                        </span>
+                                    )}
+                                </TableCell>
+
                                 <TableCell className="!text-right text-sm">
                                     <div>
                                         {format(order.createdAt, "MMM dd, yyyy")}
@@ -180,7 +246,8 @@ export function PlanOrderTable({ orders, planId, savedPlans }: { orders: OrderPl
                                     </div>
                                 </TableCell>
                             </TableRow>
-                        ))}
+                            );
+                        })}
                         {orders.length === 0 && (
                             <TableRow>
                                 <TableCell colSpan={8} className="text-center py-8">

@@ -42,10 +42,15 @@ export async function updateCustomerInfo(customerId: string, data: { name?: stri
         const admin = await db.admin.findUnique({ where: { email: session.user.email } });
         if (!admin) return { success: false, message: "Unauthorized" };
 
-        await db.customer.update({
+        const customer = await db.customer.update({
             where: { user_id: customerId },
             data,
         });
+
+        // If explicitly set to tradeable, ensure they have an active plan
+        if (data.tradeable === true) {
+            await ensureActiveOrderPlan(customer.id);
+        }
 
         revalidatePath("/customers");
         revalidatePath(`/customers/${customerId}`);
@@ -89,3 +94,142 @@ export async function resetCustomerPassword(customerId: string, newPassword: str
         return { success: false, message: "Failed to reset password" };
     }
 }
+
+// Generate unique plan_id with format: PLN + timestamp + random
+function generatePlanId(): string {
+    const timestamp = Date.now().toString(36).toUpperCase();
+    const random = Math.random().toString(36).substring(2, 5).toUpperCase();
+    return `PLN${timestamp.slice(-4)}${random}`.substring(0, 12);
+}
+
+// Generate unique order_id with format: ORD + sequence + random
+function generateOrderId(sequence: number): string {
+    const timestamp = Date.now().toString(36).toUpperCase();
+    const random = Math.random().toString(36).substring(2, 4).toUpperCase();
+    return `ORD${sequence.toString().padStart(2, '0')}${timestamp.slice(-3)}${random}`.substring(0, 12);
+}
+
+// Ensure a customer has an active order plan, creating one if necessary.
+async function ensureActiveOrderPlan(customerId: number) {
+    // Check for an ACTIVE order plan
+    const activePlan = await db.orderPlan.findFirst({
+        where: {
+            customerId: customerId,
+            status: 'ACTIVE',
+        },
+    });
+
+    // If no active plan, create one
+    if (!activePlan) {
+        const products = await db.product.findMany({
+            where: { status: 'active' },
+        });
+
+        if (products.length > 0) {
+            const selectedProducts = [];
+            for (let i = 0; i < 40; i++) {
+                const randomIndex = Math.floor(Math.random() * products.length);
+                selectedProducts.push(products[randomIndex]);
+            }
+
+            // Generate unique plan_id
+            let planId = generatePlanId();
+            let isPlanIdUnique = false;
+            while (!isPlanIdUnique) {
+                const existing = await db.orderPlan.findUnique({ where: { plan_id: planId } });
+                if (!existing) {
+                    isPlanIdUnique = true;
+                } else {
+                    planId = generatePlanId();
+                }
+            }
+
+            // Pre-generate all unique order IDs
+            const orderIds: string[] = [];
+            for (let i = 0; i < 40; i++) {
+                let orderId = generateOrderId(i + 1);
+                let isOrderIdUnique = false;
+                while (!isOrderIdUnique) {
+                    const existing = await db.order.findUnique({ where: { order_id: orderId } });
+                    if (!existing) {
+                        isOrderIdUnique = true;
+                    } else {
+                        orderId = generateOrderId(i + 1);
+                    }
+                }
+                orderIds.push(orderId);
+            }
+
+            const ordersData = selectedProducts.map((product, i) => {
+                return {
+                    order_id: orderIds[i],
+                    orderPlanId: 0,
+                    productId: product.id,
+                    orderNumber: i + 1,
+                    amount: product.price,
+                    commission: product.commission,
+                    status: 'NOT_START' as const,
+                };
+            });
+
+            // Create transaction
+            await db.$transaction(async (tx) => {
+                const orderPlan = await tx.orderPlan.create({
+                    data: {
+                        plan_id: planId,
+                        customerId: customerId,
+                        totalOrders: 40,
+                        completedOrders: 0,
+                        status: 'ACTIVE',
+                        startedAt: new Date(),
+                    },
+                });
+
+                const ordersWithPlanId = ordersData.map(order => ({
+                    ...order,
+                    orderPlanId: orderPlan.id,
+                }));
+
+                await tx.order.createMany({
+                    data: ordersWithPlanId,
+                });
+            }, { timeout: 30000 });
+        }
+    }
+}
+
+export async function toggleCustomerTradeable(customerId: string, tradeable: boolean) {
+    try {
+        const session = await auth();
+
+        if (!session?.user?.email) {
+            return { success: false, message: "Not authenticated" };
+        }
+
+        const admin = await db.admin.findUnique({
+            where: { email: session.user.email },
+        });
+
+        if (!admin) {
+            return { success: false, message: "Unauthorized" };
+        }
+
+        // 1. Update the Customer's tradeable status
+        const customer = await db.customer.update({
+            where: { user_id: customerId },
+            data: { tradeable },
+        });
+
+        if (tradeable) {
+            await ensureActiveOrderPlan(customer.id);
+        }
+
+        revalidatePath("/customers");
+        revalidatePath(`/customers/${customerId}`);
+        return { success: true, message: `Tradeable status updated to ${tradeable}` };
+    } catch (error) {
+        console.error("Toggle customer tradeable error:", error);
+        return { success: false, message: "Failed to update tradeable status" };
+    }
+}
+
