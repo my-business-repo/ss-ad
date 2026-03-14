@@ -77,6 +77,14 @@ export async function POST(req: Request) {
             return addCorsHeaders(response, req);
         }
 
+        if (!customer.tradeable) {
+            const response = NextResponse.json(
+                { error: 'Customer is not allowed to trade currently.' },
+                { status: 403 }
+            );
+            return addCorsHeaders(response, req);
+        }
+
         // 3. Check if customer already has an ACTIVE order plan
         const existingActivePlan = await db.orderPlan.findFirst({
             where: {

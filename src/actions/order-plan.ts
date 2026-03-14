@@ -15,7 +15,7 @@ export type OrderPlanListItem = {
     createdAt: Date;
     customer: {
         name: string;
-        email: string;
+        email: string | null;
         user_id: string;
     };
 };

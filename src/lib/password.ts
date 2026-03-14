@@ -37,3 +37,16 @@ export function generatePassword(length: number = 16): string {
     }
     return password;
 }
+
+/**
+ * Generate a strict refer code (10 characters, uppercase English letters only)
+ * @returns Random 10-character uppercase refer code
+ */
+export function generateReferCode(): string {
+    const charset = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    let code = "";
+    for (let i = 0; i < 10; i++) {
+        code += charset.charAt(Math.floor(Math.random() * charset.length));
+    }
+    return code;
+}

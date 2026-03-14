@@ -15,6 +15,7 @@ export const EditCustomerForm: React.FC<EditCustomerFormProps> = ({ customer }) 
     // Basic Info State
     const [name, setName] = useState(customer.name);
     const [status, setStatus] = useState(customer.status);
+    const [tradeable, setTradeable] = useState<boolean>(customer.tradeable || false);
     const [email, setEmail] = useState(customer.email);
     const [phoneNumber, setPhoneNumber] = useState(customer.phoneNumber || "");
     const [infoMessage, setInfoMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -34,6 +35,7 @@ export const EditCustomerForm: React.FC<EditCustomerFormProps> = ({ customer }) 
                 status,
                 email,
                 phoneNumber,
+                tradeable,
             });
 
             if (result.success) {
@@ -151,10 +153,25 @@ export const EditCustomerForm: React.FC<EditCustomerFormProps> = ({ customer }) 
                                 </div>
                             </div>
 
+                            <div className="mb-4.5">
+                                <label className="mb-3 block text-sm font-medium text-dark dark:text-white">
+                                    Tradeable
+                                </label>
+                                <label className="flex items-center cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={tradeable}
+                                        onChange={(e) => setTradeable(e.target.checked)}
+                                        className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary dark:border-dark-3 dark:bg-dark-2 dark:focus:ring-primary"
+                                    />
+                                    <span className="ml-3 text-sm text-dark dark:text-white">Allow user to start order plan</span>
+                                </label>
+                            </div>
+
                             {infoMessage && (
                                 <div className={`mb-4 rounded-md border p-4 ${infoMessage.type === 'success'
-                                        ? 'border-green-500 bg-green-50 text-green-700'
-                                        : 'border-red-500 bg-red-50 text-red-700'
+                                    ? 'border-green-500 bg-green-50 text-green-700'
+                                    : 'border-red-500 bg-red-50 text-red-700'
                                     }`}>
                                     {infoMessage.text}
                                 </div>
@@ -227,8 +244,8 @@ export const EditCustomerForm: React.FC<EditCustomerFormProps> = ({ customer }) 
 
                         {passwordMessage && (
                             <div className={`mt-4 rounded-md border p-4 ${passwordMessage.type === 'success'
-                                    ? 'border-green-500 bg-green-50 text-green-700'
-                                    : 'border-red-500 bg-red-50 text-red-700'
+                                ? 'border-green-500 bg-green-50 text-green-700'
+                                : 'border-red-500 bg-red-50 text-red-700'
                                 }`}>
                                 {passwordMessage.text}
                             </div>

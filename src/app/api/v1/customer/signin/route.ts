@@ -12,19 +12,21 @@ export async function OPTIONS(req: Request) {
 }
 
 export async function POST(req: Request) {
+    console.log("SIGNIN REQUEST:", req);
     // Handle CORS preflight
     const corsResponse = handleCors(req);
     if (corsResponse) return corsResponse;
 
     try {
         const body = await req.json();
-        const { email, username, password } = body;
+        console.log("SIGNIN REQUEST BODY:", body);
+        const { phoneNumber, username, password } = body;
 
-        const identifier = email || username;
+        const identifier = phoneNumber || username;
 
         if (!identifier || !password) {
             const response = NextResponse.json(
-                { error: 'Email/Username and password are required' },
+                { error: 'Phone Number/Username and password are required' },
                 { status: 400 }
             );
             return addCorsHeaders(response, req);
@@ -33,9 +35,9 @@ export async function POST(req: Request) {
         const customer = await db.customer.findFirst({
             where: {
                 OR: [
-                    { email: identifier },
-                    { name: identifier },
-                    { user_id: identifier }
+                    { phoneNumber: identifier },
+                    { user_id: identifier },
+                    { name: identifier }
                 ]
             },
             include: {
@@ -44,6 +46,7 @@ export async function POST(req: Request) {
         });
 
         if (!customer) {
+            console.error("DEBUG: Customer not found. Identifier given:", identifier);
             const response = NextResponse.json(
                 { error: 'Invalid credentials' },
                 { status: 401 }
@@ -55,6 +58,7 @@ export async function POST(req: Request) {
         const isValid = await verifyPassword(password, customer.password);
 
         if (!isValid) {
+            console.error("DEBUG: Customer found, but password invalid for id:", customer.id);
             const response = NextResponse.json(
                 { error: 'Invalid credentials' },
                 { status: 401 }

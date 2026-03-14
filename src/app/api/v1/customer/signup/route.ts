@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { db } from '@/lib/db';
-import { hashPassword, generatePassword } from '@/lib/password';
+import { hashPassword, generatePassword, generateReferCode } from '@/lib/password';
 import { generateUserId } from '@/lib/user-id';
 import { generateAccountId } from '@/lib/account-id';
 import { handleCors, addCorsHeaders } from '@/lib/cors';
@@ -21,28 +21,45 @@ export async function POST(req: Request) {
         const { name, email, password, fundPassword, phoneNumber, referCode } = body;
 
         // 1. Basic Validation
-        if (!name || !email || !password || !fundPassword) {
+        if (!name || !phoneNumber || !password || !fundPassword) {
             const response = NextResponse.json(
-                { error: 'Name, email, password, and fund password are required' },
+                { error: 'Name, phone number, password, and fund password are required' },
                 { status: 400 }
             );
             return addCorsHeaders(response, req);
         }
 
-        // 2. Check if email already exists
-        const existingUser = await db.customer.findUnique({
-            where: { email },
+        const validEmail = email ? email : null;
+
+        // 2. Check if email or phone already exists
+        if (validEmail) {
+            const existingEmail = await db.customer.findUnique({
+                where: { email: validEmail },
+            });
+
+            if (existingEmail) {
+                const response = NextResponse.json(
+                    { error: 'Email already exists' },
+                    { status: 409 }
+                );
+                return addCorsHeaders(response, req);
+            }
+        }
+
+        const existingPhone = await db.customer.findUnique({
+            where: { phoneNumber },
         });
 
-        if (existingUser) {
+        if (existingPhone) {
             const response = NextResponse.json(
-                { error: 'Email already exists' },
+                { error: 'Phone number already exists' },
                 { status: 409 }
             );
             return addCorsHeaders(response, req);
         }
 
         // 3. Validate Upline Refer Code (if provided)
+        let isReferredByCustomer = false;
         if (referCode) {
             const uplineAdmin = await db.admin.findUnique({
                 where: { referCode },
@@ -58,10 +75,13 @@ export async function POST(req: Request) {
                 );
                 return addCorsHeaders(response, req);
             }
+            if (uplineCustomer) {
+                isReferredByCustomer = true;
+            }
         }
 
         // 4. Generate new unique refer code for this user
-        let newReferCode = generatePassword(8); // Use simple generator initially
+        let newReferCode = generateReferCode(); // 10 uppercase English letters
         let isUnique = false;
         while (!isUnique) {
             const existing = await db.customer.findUnique({ where: { referCode: newReferCode } });
@@ -69,7 +89,7 @@ export async function POST(req: Request) {
             if (!existing && !existingAdmin) {
                 isUnique = true;
             } else {
-                newReferCode = generatePassword(8);
+                newReferCode = generateReferCode();
             }
         }
 
@@ -86,12 +106,12 @@ export async function POST(req: Request) {
         const customer = await db.customer.create({
             data: {
                 name,
-                email,
+                email: validEmail,
                 password: hashedPassword,
                 fundPassword: hashedFundPassword,
                 phoneNumber,
                 referCode: newReferCode,
-                referredByCode: referCode ? referCode : null,
+                referredByCode: isReferredByCustomer ? referCode : null,
                 user_id: 'TEMP',
                 levelId: 1, // Default to VIP1
             },

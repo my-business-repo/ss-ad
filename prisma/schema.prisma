@@ -23,14 +23,15 @@ model Customer {
   id                 Int                 @id @default(autoincrement())
   user_id            String              @unique @db.VarChar(20)
   name               String
-  email              String              @unique
+  email              String?             @unique
   password           String
   fundPassword       String?
-  phoneNumber        String?
+  phoneNumber        String?             @unique
   referCode          String              @unique @db.VarChar(10)
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
   status             String              @default("active")
+  tradeable          Boolean             @default(false)
   verificationTokens VerificationToken[]
   accounts           Account[]
 

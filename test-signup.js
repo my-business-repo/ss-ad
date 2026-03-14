@@ -6,11 +6,11 @@ const testSignup = async () => {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                name: 'Alice Johnson',
-                email: 'alice.johnson@example.com',
+                name: 'Alice Admin Referral',
                 password: 'password123',
                 fundPassword: '123456',
-                phoneNumber: '+9876543210',
+                phoneNumber: '5555555555',
+                referCode: 'ADMIN123'
             }),
         });
 
