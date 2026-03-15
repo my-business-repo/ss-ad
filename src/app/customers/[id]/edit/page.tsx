@@ -18,9 +18,14 @@ export default async function EditCustomerPage(props: Props) {
     const params = await props.params;
     const { id } = params;
 
-    const customer = await db.customer.findUnique({
-        where: { user_id: id },
-    });
+    const [customer, levels] = await Promise.all([
+        db.customer.findUnique({
+            where: { user_id: id },
+        }),
+        db.customerLevel.findMany({
+            orderBy: { level_id: 'asc' },
+        })
+    ]);
 
     if (!customer) {
         notFound();
@@ -30,7 +35,7 @@ export default async function EditCustomerPage(props: Props) {
         <div className="mx-auto max-w-270">
             <Breadcrumb pageName="Edit Customer" />
 
-            <EditCustomerForm customer={customer} />
+            <EditCustomerForm customer={customer} levels={levels} />
         </div>
     );
 }

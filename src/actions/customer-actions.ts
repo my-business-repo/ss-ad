@@ -34,7 +34,7 @@ export async function deleteCustomer(customerId: string) {
     }
 }
 
-export async function updateCustomerInfo(customerId: string, data: { name?: string; email?: string; phoneNumber?: string; status?: string; tradeable?: boolean }) {
+export async function updateCustomerInfo(customerId: string, data: { name?: string; email?: string; phoneNumber?: string; status?: string; tradeable?: boolean; levelId?: number | null }) {
     try {
         const session = await auth();
         if (!session?.user?.email) return { success: false, message: "Not authenticated" };
