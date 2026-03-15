@@ -190,7 +190,7 @@ export function PlanOrderTable({ orders, planId, savedPlans, currentBalance }: {
                                 </TableCell>
 
                                 <TableCell className="!text-right">
-                                    ${order.commission.toFixed(2)}
+                                    {order.commission.toFixed(2)}%
                                 </TableCell>
 
                                 <TableCell>
