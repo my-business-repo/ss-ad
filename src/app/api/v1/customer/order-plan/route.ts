@@ -80,52 +80,28 @@ export async function GET(req: Request) {
         });
 
         if (!orderPlan) {
-            // Check for completed plan
-            orderPlan = await db.orderPlan.findFirst({
-                where: {
-                    customerId: customerId,
-                    status: 'COMPLETED',
+            // Return empty plan when requested instead of throwing 404
+            const response = NextResponse.json({
+                hasActivePlan: false,
+                orderPlan: {
+                    id: 0,
+                    plan_id: "",
+                    totalOrders: 0,
+                    completedOrders: 0,
+                    remainingOrders: 0,
+                    progress: 0,
+                    status: "NOT_START",
+                    startedAt: null,
+                    completedAt: null,
+                    orders: [],
                 },
-                orderBy: {
-                    completedAt: 'desc'
-                },
-                include: {
-                    orders: {
-                        include: {
-                            product: {
-                                select: {
-                                    product_id: true,
-                                    name: true,
-                                    description: true,
-                                    price: true,
-                                    commission: true,
-                                    rating: true,
-                                    image: true,
-                                },
-                            },
-                        },
-                        orderBy: { orderNumber: 'asc' },
-                    },
-                },
-            });
-        }
-
-        if (!orderPlan) {
-            const response = NextResponse.json(
-                {
-                    error: 'No active or completed order plan found',
-                    hasActivePlan: false,
-                },
-                { status: 404 }
-            );
+            }, { status: 200 });
             return addCorsHeaders(response, req);
         }
 
         // 4. Return order plan info with progress
         const response = NextResponse.json({
-            hasActivePlan: true, // This is true if we return ANY plan (active or completed) in this context? 
-            // Or should it differentiate? The user request implies returning the plan content.
-            // Let's keep it true to indicate "we found a plan you can view".
+            hasActivePlan: true, 
             orderPlan: {
                 id: orderPlan.id,
                 plan_id: orderPlan.plan_id,

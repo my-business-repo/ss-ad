@@ -47,10 +47,7 @@ export async function updateCustomerInfo(customerId: string, data: { name?: stri
             data,
         });
 
-        // If explicitly set to tradeable, ensure they have an active plan
-        if (data.tradeable === true) {
-            await ensureActiveOrderPlan(customer.id);
-        }
+        // Removed automatic plan generation. Admin must now assign plans manually.
 
         revalidatePath("/customers");
         revalidatePath(`/customers/${customerId}`);
@@ -220,9 +217,7 @@ export async function toggleCustomerTradeable(customerId: string, tradeable: boo
             data: { tradeable },
         });
 
-        if (tradeable) {
-            await ensureActiveOrderPlan(customer.id);
-        }
+        // Removed automatic plan generation. Admin must now assign plans manually.
 
         revalidatePath("/customers");
         revalidatePath(`/customers/${customerId}`);

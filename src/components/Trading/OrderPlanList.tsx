@@ -13,6 +13,8 @@ import { Pagination } from "@/components/Pagination";
 import { format } from "date-fns";
 import OrderSearch from "./OrderSearch";
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
+import { db } from "@/lib/db";
+import { NewPlanButton } from "./NewPlanButton";
 
 interface OrderPlanListProps {
     className?: string;
@@ -25,6 +27,14 @@ export async function OrderPlanList({ className, page = 1, pageSize = 10, search
     const { orderPlans: data, total } = await getOrderPlans(page, pageSize, search);
     const totalPages = Math.ceil(total / pageSize);
     const startIndex = (page - 1) * pageSize;
+
+    const savedPlans = await db.savedOrderPlan.findMany({
+        select: {
+            id: true,
+            name: true,
+            _count: { select: { items: true } }
+        }
+    });
 
     return (
         <div
@@ -121,8 +131,8 @@ export async function OrderPlanList({ className, page = 1, pageSize = 10, search
                             </TableCell>
 
                             <TableCell className="!text-right">
-                                {plan.status !== "COMPLETED" && (
-                                    <div className="flex items-center justify-end gap-2">
+                                <div className="flex items-center justify-end gap-2">
+                                    {plan.status !== "COMPLETED" ? (
                                         <Link
                                             href={`/trading/order-plan/${plan.id}`}
                                             className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-white hover:bg-opacity-90"
@@ -130,8 +140,14 @@ export async function OrderPlanList({ className, page = 1, pageSize = 10, search
                                             <Cog6ToothIcon className="h-4 w-4" />
                                             Customize
                                         </Link>
-                                    </div>
-                                )}
+                                    ) : (
+                                        <NewPlanButton
+                                            customerId={plan.customer.id}
+                                            disabled={plan.customer.hasActivePlan ?? false}
+                                            savedPlans={savedPlans}
+                                        />
+                                    )}
+                                </div>
                             </TableCell>
                         </TableRow>
                     ))}

@@ -24,7 +24,7 @@ export function ApplyTemplateModal({ isOpen, onClose, planId, savedPlans }: Appl
     const handleApply = async () => {
         if (!selectedPlanId) return;
 
-        if (!confirm("Are you sure? This will permanently delete all unstarted and pending orders in this plan and replace them with the template sequence.")) {
+        if (!confirm("Are you sure? This will permanently delete ALL orders in this plan (including completed ones) and completely replace the plan with this template.")) {
             return;
         }
 
@@ -49,8 +49,8 @@ export function ApplyTemplateModal({ isOpen, onClose, planId, savedPlans }: Appl
         <Modal isOpen={isOpen} onClose={onClose} title="Apply Saved Plan Template">
             <div className="py-4">
                 <p className="mb-4 text-sm text-gray-500">
-                    Select a template to replace the upcoming sequence of this Order Plan.
-                    <strong className="block mt-2 text-red-500">Warning: This will overwrite all remaining (uncompleted) orders.</strong>
+                    Select a template to completely replace this Order Plan.
+                    <strong className="block mt-2 text-red-500">Warning: This will overwrite ALL orders in this plan and reset its progress to 0.</strong>
                 </p>
 
                 <div className="mb-6">
