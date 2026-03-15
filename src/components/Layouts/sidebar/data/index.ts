@@ -52,7 +52,7 @@ export const NAV_DATA = [
       },
       {
         title: "Save Order Plan",
-        icon: Icons.Table,
+        icon: Icons.Box,
         items: [
           {
             title: "Save Order Plan List",
