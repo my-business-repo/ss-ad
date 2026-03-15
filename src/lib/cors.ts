@@ -9,6 +9,8 @@ const allowedOrigins = [
     'http://localhost:8080', // Common alt port
     'https://ss-fe-ten.vercel.app', // Production frontend
     'https://ss-fe-ten.vercel.app/', // Production frontend with trailing slash
+    'https://www.stjqi.online', // New Production frontend
+    'https://stjqi.online', // New Production frontend without www
 ];
 
 const corsOptions = {
