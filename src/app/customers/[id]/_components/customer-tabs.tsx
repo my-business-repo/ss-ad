@@ -15,6 +15,7 @@ interface CustomerTabsProps {
     withdrawals: any[];
     orders: any[];
     orderPlans: any[];
+    savedPlans: any[];
 }
 
 export const CustomerTabs: React.FC<CustomerTabsProps> = ({
@@ -25,6 +26,7 @@ export const CustomerTabs: React.FC<CustomerTabsProps> = ({
     withdrawals,
     orders,
     orderPlans,
+    savedPlans,
 }) => {
     const [activeTab, setActiveTab] = useState("general");
 
@@ -59,6 +61,7 @@ export const CustomerTabs: React.FC<CustomerTabsProps> = ({
                         customer={customer}
                         totalBalance={totalBalance}
                         totalProfit={totalProfit}
+                        savedPlans={savedPlans}
                     />
                 )}
                 {activeTab === "deposit" && (

@@ -15,6 +15,7 @@ import OrderSearch from "./OrderSearch";
 import { Cog6ToothIcon } from "@heroicons/react/24/outline";
 import { db } from "@/lib/db";
 import { NewPlanButton } from "./NewPlanButton";
+import { DeleteOrderPlanButton } from "./DeleteOrderPlanButton";
 
 interface OrderPlanListProps {
     className?: string;
@@ -147,6 +148,7 @@ export async function OrderPlanList({ className, page = 1, pageSize = 10, search
                                             savedPlans={savedPlans}
                                         />
                                     )}
+                                    <DeleteOrderPlanButton planId={plan.id} />
                                 </div>
                             </TableCell>
                         </TableRow>

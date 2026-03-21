@@ -3,13 +3,17 @@
 import { updateCustomerInfo, resetCustomerPassword } from "@/actions/customer-actions";
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
+import { AssignNewPlanModal } from "@/components/Trading/AssignNewPlanModal";
+import { toggleCustomerTradeable } from "@/actions/customer-actions";
 
 interface EditCustomerFormProps {
     customer: any;
     levels: any[];
+    savedPlans: any[];
+    hasActivePlan: boolean;
 }
 
-export const EditCustomerForm: React.FC<EditCustomerFormProps> = ({ customer, levels }) => {
+export const EditCustomerForm: React.FC<EditCustomerFormProps> = ({ customer, levels, savedPlans, hasActivePlan }) => {
     const router = useRouter();
     const [isPending, startTransition] = useTransition();
 
@@ -21,6 +25,7 @@ export const EditCustomerForm: React.FC<EditCustomerFormProps> = ({ customer, le
     const [email, setEmail] = useState(customer.email || "");
     const [phoneNumber, setPhoneNumber] = useState(customer.phoneNumber || "");
     const [infoMessage, setInfoMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
     // Password State
     const [newLoginPassword, setNewLoginPassword] = useState("");
@@ -205,7 +210,14 @@ export const EditCustomerForm: React.FC<EditCustomerFormProps> = ({ customer, le
                                     <input
                                         type="checkbox"
                                         checked={tradeable}
-                                        onChange={(e) => setTradeable(e.target.checked)}
+                                        onChange={(e) => {
+                                            const newValue = e.target.checked;
+                                            if (newValue === true && !hasActivePlan) {
+                                                setIsModalOpen(true);
+                                            } else {
+                                                setTradeable(newValue);
+                                            }
+                                        }}
                                         className="h-5 w-5 rounded border-gray-300 text-primary focus:ring-primary dark:border-dark-3 dark:bg-dark-2 dark:focus:ring-primary"
                                     />
                                     <span className="ml-3 text-sm text-dark dark:text-white">Allow user to start order plan</span>
@@ -297,6 +309,29 @@ export const EditCustomerForm: React.FC<EditCustomerFormProps> = ({ customer, le
                     </div>
                 </div>
             </div>
+
+            {isModalOpen && (
+                <AssignNewPlanModal
+                    isOpen={isModalOpen}
+                    onClose={() => setIsModalOpen(false)}
+                    customerId={customer.id} // DB ID
+                    savedPlans={savedPlans}
+                    onSuccess={() => {
+                        setIsModalOpen(false);
+                        setTradeable(true);
+                        // Save the tradeable status immediately in the backend like the detail toggle
+                        startTransition(async () => {
+                            const result = await toggleCustomerTradeable(customer.user_id, true);
+                            if (result.success) {
+                                router.refresh();
+                            } else {
+                                alert(result.message || "Failed to update tradeable status");
+                                setTradeable(false);
+                            }
+                        });
+                    }}
+                />
+            )}
         </div>
     );
 };

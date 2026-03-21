@@ -56,6 +56,16 @@ export default async function CustomerDetailPage(props: Props) {
     // Flatten orders from orderPlans
     const allOrders = customer.orderPlans.flatMap(plan => plan.orders).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
 
+    // Fetch saved plans for the AssignNewPlanModal
+    const savedPlans = await db.savedOrderPlan.findMany({
+        orderBy: { createdAt: 'desc' },
+        include: {
+            _count: {
+                select: { items: true }
+            }
+        }
+    });
+
     return (
         <div className="mx-auto max-w-270">
             <Breadcrumb pageName="Customer Details" />
@@ -68,6 +78,7 @@ export default async function CustomerDetailPage(props: Props) {
                 withdrawals={withdrawals}
                 orders={allOrders}
                 orderPlans={customer.orderPlans}
+                savedPlans={savedPlans}
             />
         </div>
     );

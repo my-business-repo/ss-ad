@@ -18,12 +18,21 @@ export default async function EditCustomerPage(props: Props) {
     const params = await props.params;
     const { id } = params;
 
-    const [customer, levels] = await Promise.all([
+    const [customer, levels, savedPlans] = await Promise.all([
         db.customer.findUnique({
             where: { user_id: id },
+            include: {
+                orderPlans: {
+                    where: { status: 'ACTIVE' }
+                }
+            }
         }),
         db.customerLevel.findMany({
             orderBy: { level_id: 'asc' },
+        }),
+        db.savedOrderPlan.findMany({
+            orderBy: { createdAt: 'desc' },
+            include: { _count: { select: { items: true } } }
         })
     ]);
 
@@ -35,7 +44,12 @@ export default async function EditCustomerPage(props: Props) {
         <div className="mx-auto max-w-270">
             <Breadcrumb pageName="Edit Customer" />
 
-            <EditCustomerForm customer={customer} levels={levels} />
+            <EditCustomerForm 
+                customer={customer} 
+                levels={levels} 
+                savedPlans={savedPlans}
+                hasActivePlan={customer.orderPlans.length > 0}
+            />
         </div>
     );
 }

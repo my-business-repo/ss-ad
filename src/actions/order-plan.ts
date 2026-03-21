@@ -280,6 +280,28 @@ export async function deleteOrder(orderId: number, planId: number) {
     }
 }
 
+export async function deleteOrderPlan(planId: number) {
+    try {
+        await db.$transaction(async (tx) => {
+            // Delete all associated Orders first
+            await tx.order.deleteMany({
+                where: { orderPlanId: planId }
+            });
+
+            // Delete the OrderPlan itself
+            await tx.orderPlan.delete({
+                where: { id: planId }
+            });
+        });
+
+        revalidatePath("/trading/order-plan");
+        return { success: true };
+    } catch (error) {
+        console.error("Failed to delete order plan:", error);
+        return { success: false, error: "Failed to delete order plan" };
+    }
+}
+
 export async function applySavedPlanToOrderPlan(planId: number, savedPlanId: number) {
     try {
         const savedPlan = await db.savedOrderPlan.findUnique({

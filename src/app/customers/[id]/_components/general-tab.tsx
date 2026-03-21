@@ -5,9 +5,12 @@ interface GeneralTabProps {
     customer: any;
     totalBalance: number;
     totalProfit: number;
+    savedPlans: any[];
 }
 
-export const GeneralTab: React.FC<GeneralTabProps> = ({ customer, totalBalance, totalProfit }) => {
+export const GeneralTab: React.FC<GeneralTabProps> = ({ customer, totalBalance, totalProfit, savedPlans }) => {
+    const hasActivePlan = customer.orderPlans?.some((p: any) => p.status === 'ACTIVE') || false;
+
     return (
         <div className="grid grid-cols-5 gap-8">
             <div className="col-span-5 xl:col-span-3">
@@ -86,7 +89,10 @@ export const GeneralTab: React.FC<GeneralTabProps> = ({ customer, totalBalance, 
                                 <div>
                                     <TradeableToggle
                                         customerId={customer.user_id}
+                                        customerDbId={customer.id}
                                         initialTradeable={customer.tradeable}
+                                        hasActivePlan={hasActivePlan}
+                                        savedPlans={savedPlans}
                                     />
                                 </div>
                             </div>

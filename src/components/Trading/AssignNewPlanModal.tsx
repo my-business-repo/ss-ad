@@ -16,9 +16,10 @@ interface AssignNewPlanModalProps {
     onClose: () => void;
     customerId: number | null;
     savedPlans: SavedPlanOption[];
+    onSuccess?: () => void;
 }
 
-export function AssignNewPlanModal({ isOpen, onClose, customerId, savedPlans }: AssignNewPlanModalProps) {
+export function AssignNewPlanModal({ isOpen, onClose, customerId, savedPlans, onSuccess }: AssignNewPlanModalProps) {
     const router = useRouter();
     const [creationType, setCreationType] = useState<'random' | 'saved'>('random');
     const [selectedPlanId, setSelectedPlanId] = useState<number | "">("");
@@ -41,6 +42,11 @@ export function AssignNewPlanModal({ isOpen, onClose, customerId, savedPlans }: 
                 setSelectedPlanId("");
                 setCreationType('random');
                 router.refresh();
+                if (onSuccess) {
+                    onSuccess();
+                } else {
+                    onClose();
+                }
             } else {
                 alert(result.error || "Failed to assign new order plan.");
             }
